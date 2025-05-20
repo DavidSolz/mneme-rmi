@@ -5,3 +5,5 @@
 # Files
 
 *.env
+*.db
+*.bak
