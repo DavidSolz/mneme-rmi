@@ -2,9 +2,12 @@ package app.apollo;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 
+//TODO Cache
 public class DBSessionDAO implements SessionDAO{
 
     private Connection connection;
@@ -16,7 +19,33 @@ public class DBSessionDAO implements SessionDAO{
 
     @Override
     public Session findByToken(String token) {
-        throw new UnsupportedOperationException("Unimplemented method 'findByToken'");
+        final String statementString = "SELECT * FROM sessions WHERE token=?";
+        PreparedStatement statement = null;
+        Session session = null;
+
+        try {
+            statement = connection.prepareStatement(statementString);
+
+            statement.setString(1, token);
+
+            ResultSet result = statement.executeQuery();
+
+            if(result.next() == false)
+            {
+                return null;
+            }
+
+            session = new Session();
+
+            session.setUserId(result.getInt("user_id"));
+            session.setToken(result.getString("token"));
+            session.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return session;
     }
 
     @Override
