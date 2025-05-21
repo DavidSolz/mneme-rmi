@@ -1,10 +1,11 @@
 package app.apollo;
 
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 import app.common.AuthService;
 
-public class AuthProvider implements AuthService
+public class AuthProvider extends UnicastRemoteObject implements AuthService
 {
 
     private AuthProviderManager authManager;

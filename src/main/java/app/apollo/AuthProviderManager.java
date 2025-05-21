@@ -22,6 +22,11 @@ public class AuthProviderManager {
 
         user = userDAO.findByUsername(username);
 
+        if(user == null)
+        {
+            return token;
+        }
+
         try {
 
             if( user.getPassword().equals(password) == false )
@@ -49,6 +54,7 @@ public class AuthProviderManager {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+
 
         return token;
     }

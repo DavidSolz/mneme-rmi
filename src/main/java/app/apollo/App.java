@@ -14,7 +14,6 @@ public final class App {
 
         AuthProviderManager authManager = null;
         AuthService service = null;
-        Registry registry = null;
 
         try {
 
@@ -23,8 +22,10 @@ public final class App {
             authManager = new AuthProviderManager(factory);
             service = new AuthProvider(authManager);
 
-            registry = LocateRegistry.createRegistry(2567);
-            registry.bind("AuthService", service);
+            Registry registry = LocateRegistry.createRegistry(2567);
+            registry.rebind("AuthService", service);
+
+            System.out.println("RMI server is running...");
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
