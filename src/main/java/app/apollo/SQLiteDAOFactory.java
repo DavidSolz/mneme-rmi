@@ -22,4 +22,14 @@ public class SQLiteDAOFactory implements DAOFactory{
         return new DBSessionDAO(connection);
     }
 
+    @Override
+    public UserDAO getUserDAO() {
+        return new DBUserDAO(connection);
+    }
+
+    @Override
+    public FileMetadataDAO getFileMetadataDAO() {
+        return new DBFileMetadataDAO(connection);
+    }
+
 }

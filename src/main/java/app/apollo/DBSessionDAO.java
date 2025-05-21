@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-//TODO Cache
 public class DBSessionDAO implements SessionDAO{
 
     private Connection connection;
@@ -30,16 +29,14 @@ public class DBSessionDAO implements SessionDAO{
 
             ResultSet result = statement.executeQuery();
 
-            if(result.next() == false)
+            if(result.next())
             {
-                return null;
+                session = new Session();
+
+                session.setUserId(result.getInt("user_id"));
+                session.setToken(result.getString("token"));
+                session.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
             }
-
-            session = new Session();
-
-            session.setUserId(result.getInt("user_id"));
-            session.setToken(result.getString("token"));
-            session.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -50,9 +47,9 @@ public class DBSessionDAO implements SessionDAO{
 
     @Override
     public boolean insert(Session session) {
-
         final String statementString = "INSERT INTO sessions (user_id, token, created_at) VALUES (?, ?, ?)";
         PreparedStatement statement = null;
+
         try {
             statement = connection.prepareStatement(statementString);
 
@@ -79,7 +76,7 @@ public class DBSessionDAO implements SessionDAO{
 
             statement.setString(1, token);
 
-            statement.execute();
+            statement.executeUpdate();
 
         }catch (SQLException e)
         {
