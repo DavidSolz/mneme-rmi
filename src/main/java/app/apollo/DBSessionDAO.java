@@ -90,4 +90,34 @@ public class DBSessionDAO implements SessionDAO{
         throw new UnsupportedOperationException("Unimplemented method 'deleteExpired'");
     }
 
+    @Override
+    public Session findByUserId(Integer id) {
+
+        final String statementString = "SELECT * FROM sessions WHERE user_id=?";
+        PreparedStatement statement = null;
+        Session session = null;
+
+        try {
+            statement = connection.prepareStatement(statementString);
+
+            statement.setInt(1, id);
+
+            ResultSet result = statement.executeQuery();
+
+            if(result.next())
+            {
+                session = new Session();
+
+                session.setUserId(result.getInt("user_id"));
+                session.setToken(result.getString("token"));
+                session.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return session;
+    }
+
 }

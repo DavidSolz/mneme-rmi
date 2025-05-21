@@ -1,23 +1,33 @@
 package app.apollo;
 
-import java.time.LocalDateTime;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+import app.common.AuthService;
 
 public final class App {
 
     public static void main(String[] args) {
 
         String connectionString = "jdbc:sqlite:data.db";
-        DAOFactory factory = new SQLiteDAOFactory(connectionString);
-        SessionDAO sessionDAO = factory.getSessionDAO();
+        DAOFactory factory = null;
 
-        Session session = new Session();
-        session.setCreatedAt(LocalDateTime.now());
-        session.setToken("1234");
-        session.setUserId(123456);
+        AuthProviderManager authManager = null;
+        AuthService service = null;
+        Registry registry = null;
 
-        sessionDAO.insert(session);
+        try {
 
-        sessionDAO.delete("12345");
+            factory = new SQLiteDAOFactory(connectionString);
 
+            authManager = new AuthProviderManager(factory);
+            service = new AuthProvider(authManager);
+
+            registry = LocateRegistry.createRegistry(2567);
+            registry.bind("AuthService", service);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
