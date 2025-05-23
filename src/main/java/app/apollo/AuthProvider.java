@@ -41,4 +41,10 @@ public class AuthProvider extends UnicastRemoteObject implements AuthService
         return result;
     }
 
+    @Override
+    public Integer retrieveUserIdFromToken(String token) throws RemoteException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'retrieveUserIdFromToken'");
+    }
+
 }

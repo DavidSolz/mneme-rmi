@@ -13,7 +13,7 @@ public class App {
 
         try {
             String portString = System.getenv("PORT");
-            Integer port = Integer.parseInt(portString);
+            Integer port = portString != null ? Integer.parseInt(portString) : 2567;
             Registry registry = LocateRegistry.getRegistry(port);
             service = (AuthService) registry.lookup("AuthService");
 

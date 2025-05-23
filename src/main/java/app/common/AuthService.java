@@ -12,4 +12,6 @@ public interface AuthService extends Remote {
     public void logout(String token) throws RemoteException;
 
     public boolean validateToken(String token) throws RemoteException;
+
+    public Integer retrieveUserIdFromToken(String token) throws RemoteException;
 }

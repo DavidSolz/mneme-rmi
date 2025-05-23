@@ -21,6 +21,12 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
     public boolean insert(FileMetadata metadata) {
         final String statementString = "INSERT INTO metadata (filename, owner_id, path, created_at) VALUES (?, ?, ?, ?)";
         PreparedStatement statement = null;
+
+        if(findByNameAndOwner(metadata.getFilename(), metadata.getOwnerId()) != null)
+        {
+            return false;
+        }
+
         try {
             statement = connection.prepareStatement(statementString);
 
