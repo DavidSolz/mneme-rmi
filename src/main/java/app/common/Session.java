@@ -1,8 +1,9 @@
-package app.apollo;
+package app.common;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Session {
+public class Session implements Serializable{
 
     private String token;
     private Integer userId;

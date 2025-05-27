@@ -6,6 +6,18 @@ CREATE TABLE sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE blocks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    metadata_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    sequence_id INTEGER NOT NULL,
+    size INTEGER NOT NULL,
+    checksum TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (metadata_id) REFERENCES metadata(id) ON DELETE CASCADE,
+    UNIQUE(user_id, metadata_id, sequence_id)
+);
+
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,

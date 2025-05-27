@@ -7,13 +7,28 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public class DBSessionDAO implements SessionDAO{
+import app.common.Session;
+
+public class DBSessionDAO implements SessionDAO {
 
     private Connection connection;
 
-    public DBSessionDAO(Connection connection)
-    {
+    public DBSessionDAO(Connection connection) {
         this.connection = connection;
+        clearAllSessions();
+    }
+
+    private void clearAllSessions() {
+        final String sql = "DELETE FROM sessions";
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("Failed to clear sessions: " + e.getMessage());
+        }
     }
 
     @Override
@@ -29,8 +44,7 @@ public class DBSessionDAO implements SessionDAO{
 
             ResultSet result = statement.executeQuery();
 
-            if(result.next())
-            {
+            if (result.next()) {
                 session = new Session();
 
                 session.setUserId(result.getInt("user_id"));
@@ -78,8 +92,7 @@ public class DBSessionDAO implements SessionDAO{
 
             statement.executeUpdate();
 
-        }catch (SQLException e)
-        {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -87,7 +100,21 @@ public class DBSessionDAO implements SessionDAO{
 
     @Override
     public void deleteExpired(Duration maxAge) {
-        throw new UnsupportedOperationException("Unimplemented method 'deleteExpired'");
+        LocalDateTime cutoff = LocalDateTime.now().minus(maxAge);
+        String cutoffStr = cutoff.toString().replace('T', ' ');
+
+        final String sql = "DELETE FROM sessions WHERE created_at < ?";
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection.prepareStatement(sql);
+
+            statement.setString(1, cutoffStr);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
@@ -104,8 +131,7 @@ public class DBSessionDAO implements SessionDAO{
 
             ResultSet result = statement.executeQuery();
 
-            if(result.next())
-            {
+            if (result.next()) {
                 session = new Session();
 
                 session.setUserId(result.getInt("user_id"));

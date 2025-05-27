@@ -7,11 +7,11 @@ public interface AuthService extends Remote {
 
     public boolean register(String username, String password) throws RemoteException;
 
-    public String login(String username, String password) throws RemoteException;
+    public Session login(String username, String password) throws RemoteException;
+
+    public Session login(String token) throws RemoteException;
 
     public void logout(String token) throws RemoteException;
 
     public boolean validateToken(String token) throws RemoteException;
-
-    public Integer retrieveUserIdFromToken(String token) throws RemoteException;
 }

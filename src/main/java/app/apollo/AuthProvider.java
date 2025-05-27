@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import app.common.AuthService;
+import app.common.Session;
 
 public class AuthProvider extends UnicastRemoteObject implements AuthService
 {
@@ -23,10 +24,10 @@ public class AuthProvider extends UnicastRemoteObject implements AuthService
     }
 
     @Override
-    public String login(String username, String password) throws RemoteException{
-        String token = "";
-        token = authManager.login(username, password);
-        return token;
+    public Session login(String username, String password) throws RemoteException{
+        Session session = null;
+        session = authManager.login(username, password);
+        return session;
     }
 
     @Override
@@ -42,9 +43,10 @@ public class AuthProvider extends UnicastRemoteObject implements AuthService
     }
 
     @Override
-    public Integer retrieveUserIdFromToken(String token) throws RemoteException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'retrieveUserIdFromToken'");
+    public Session login(String token) throws RemoteException {
+        Session session = null;
+        session = authManager.login(token);
+        return session;
     }
 
 }

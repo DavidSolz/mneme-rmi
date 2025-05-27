@@ -32,4 +32,9 @@ public class SQLiteDAOFactory implements DAOFactory{
         return new DBFileMetadataDAO(connection);
     }
 
+    @Override
+    public FileBlockDAO getFileBlockDAO() {
+        return new DBFileBlockDAO(connection);
+    }
+
 }

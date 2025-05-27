@@ -107,7 +107,7 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
             statement = connection.prepareStatement(statementString);
 
             statement.setInt(1, ownerId);
-            statement.setString(2, statementString);
+            statement.setString(2, filename);
 
             ResultSet result = statement.executeQuery();
 

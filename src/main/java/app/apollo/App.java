@@ -4,6 +4,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import app.common.AuthService;
+import app.common.FileService;
 
 public final class App {
 
@@ -13,17 +14,24 @@ public final class App {
         DAOFactory factory = null;
 
         AuthProviderManager authManager = null;
-        AuthService service = null;
+        AuthService authService = null;
+
+        FileProviderManager fileManager = null;
+        FileService fileService = null;
 
         try {
 
             factory = new SQLiteDAOFactory(connectionString);
 
             authManager = new AuthProviderManager(factory);
-            service = new AuthProvider(authManager);
+            authService = new AuthProvider(authManager);
+
+            fileManager = new FileProviderManager(factory);
+            fileService = new FileProvider(authService, fileManager);
 
             Registry registry = LocateRegistry.createRegistry(2567);
-            registry.rebind("AuthService", service);
+            registry.rebind("AuthService", authService);
+            registry.rebind("FileService", fileService);
 
             System.out.println("RMI server is running...");
 

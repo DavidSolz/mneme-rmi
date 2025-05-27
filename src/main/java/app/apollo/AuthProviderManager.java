@@ -1,8 +1,11 @@
 package app.apollo;
 
 import java.security.InvalidParameterException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import app.common.Session;
 
 public class AuthProviderManager {
 
@@ -14,17 +17,16 @@ public class AuthProviderManager {
         this.sessionDAO = factory.getSessionDAO();
     }
 
-    public String login(String username, String password)
+    public Session login(String username, String password)
     {
-        String token = "";
-        User user = null;
         Session session = null;
+        User user = null;
 
         user = userDAO.findByUsername(username);
 
         if(user == null)
         {
-            return token;
+            return null;
         }
 
         try {
@@ -38,10 +40,10 @@ public class AuthProviderManager {
 
             if( session != null )
             {
-                return session.getToken();
+                return session;
             }
 
-            token = UUID.randomUUID().toString();
+            String token = UUID.randomUUID().toString();
 
             session = new Session();
 
@@ -56,7 +58,7 @@ public class AuthProviderManager {
         }
 
 
-        return token;
+        return session;
     }
 
     public boolean register(String username, String password)
@@ -80,8 +82,15 @@ public class AuthProviderManager {
 
     public boolean validateToken(String token)
     {
+        sessionDAO.deleteExpired(Duration.ofMinutes(15));
         Session session = sessionDAO.findByToken(token);
         return session != null;
+    }
+
+    public Session login(String token) {
+        Session session = null;
+        session = sessionDAO.findByToken(token);
+        return session;
     }
 
 }

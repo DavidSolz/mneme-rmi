@@ -1,0 +1,122 @@
+package app.apollo;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import app.common.Block;
+
+public class DBFileBlockDAO implements FileBlockDAO {
+
+    private Connection connection;
+
+    public DBFileBlockDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    @Override
+    public Block findByMetadataId(Integer metadataId) {
+        String sql = "SELECT * FROM blocks WHERE file_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, metadataId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return extractBlock(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean insert(Block block) {
+        String sql = " INSERT INTO blocks (user_id, metadata_id, sequence_id, size, checksum) VALUES (?, ?, ?, ?, ?) ON CONFLICT(user_id, metadata_id, sequence_id) DO UPDATE SET size = excluded.size, checksum = excluded.checksum";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, block.getUserId());
+            stmt.setInt(2, block.getMetadataId());
+            stmt.setLong(3, block.getSequenceNumber());
+            stmt.setInt(4, block.getSize());
+            stmt.setString(5, block.getChecksum());
+            stmt.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public Block findByUserFilenameAndBlock(Integer userId, Integer metadataId, Long blockId) {
+        String sql = "SELECT * FROM blocks WHERE user_id = ? AND metadata_id = ? AND sequence_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, metadataId);
+            stmt.setLong(3, blockId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return extractBlock(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public List<String> findChecksumByUserAndFilename(Integer userId, Integer metadataId) {
+        String sql = "SELECT checksum FROM blocks WHERE user_id = ? AND metadata_id = ? ORDER BY sequence_id";
+        List<String> checksums = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, metadataId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                checksums.add(rs.getString("checksum"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return checksums;
+    }
+
+    @Override
+    public void deleteByUserFilenameAndBlock(Integer userId, Integer metadataId, Long blockId) {
+        String sql = "DELETE FROM blocks WHERE user_id = ? AND metadata_id = ? AND sequence_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, metadataId);
+            stmt.setLong(3, blockId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteByUserAndFilename(Integer userId, Integer metadataId) {
+        String sql = "DELETE FROM blocks WHERE user_id = ? AND metadata_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, metadataId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Block extractBlock(ResultSet rs) throws SQLException {
+        Block block = new Block();
+        block.setUserId(rs.getInt("user_id"));
+        block.setMetadataId(rs.getInt("metadata_id"));
+        block.setSequenceNumber(rs.getLong("sequence_id"));
+        block.setChecksum(rs.getString("checksum"));
+        block.setSize(rs.getInt("size"));
+        return block;
+    }
+
+}

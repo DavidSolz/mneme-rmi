@@ -2,6 +2,8 @@ package app.apollo;
 
 import java.time.Duration;
 
+import app.common.Session;
+
 public interface SessionDAO {
 
     public Session findByToken(String token);
