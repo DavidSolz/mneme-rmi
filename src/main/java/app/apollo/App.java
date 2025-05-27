@@ -19,6 +19,8 @@ public final class App {
         FileProviderManager fileManager = null;
         FileService fileService = null;
 
+        System.setProperty("java.rmi.server.hostname", "localhost");
+
         try {
 
             factory = new SQLiteDAOFactory(connectionString);
