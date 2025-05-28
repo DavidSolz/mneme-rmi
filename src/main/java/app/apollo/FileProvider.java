@@ -22,10 +22,33 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
     }
 
     @Override
+    public void setFileBlockCount(String token, String filename, long numBlocks) throws RemoteException {
+
+        if (authService.validateToken(token) == false) {
+            throw new RemoteException("Token expired");
+        }
+
+        Session session = authService.login(token);
+
+        fileManager.setFileBlockCount(session.getUserId(), filename, numBlocks);
+    }
+
+    @Override
+    public long getFileBlockCount(String token, String filename) throws RemoteException {
+
+        if (authService.validateToken(token) == false) {
+            throw new RemoteException("Token expired");
+        }
+
+        Session session = authService.login(token);
+
+        return fileManager.getFileBlockCount(session.getUserId(), filename);
+    }
+
+    @Override
     public void uploadBlock(String token, String filename, Block block) throws RemoteException {
 
-        if ( authService.validateToken(token) == false )
-        {
+        if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 
@@ -38,8 +61,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
     @Override
     public void deleteFile(String token, String filename) throws RemoteException {
 
-        if ( authService.validateToken(token) == false )
-        {
+        if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 
@@ -54,8 +76,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         List<String> checksums = null;
 
-        if ( authService.validateToken(token) == false )
-        {
+        if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 
@@ -71,8 +92,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         Block block = null;
 
-        if ( authService.validateToken(token) == false )
-        {
+        if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 
@@ -88,8 +108,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         List<String> filenames = null;
 
-        if ( authService.validateToken(token) == false )
-        {
+        if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 

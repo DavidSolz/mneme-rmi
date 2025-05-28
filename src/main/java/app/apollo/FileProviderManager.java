@@ -20,6 +20,52 @@ public class FileProviderManager {
         this.fileBlockDAO = factory.getFileBlockDAO();
     }
 
+    public void setFileBlockCount(Integer userId, String filename, long numBlocks) {
+        FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
+
+        if (metadata != null) {
+            long oldBlockCount = metadata.getBlockCount();
+
+            if (numBlocks < oldBlockCount) {
+                for (long i = numBlocks; i < oldBlockCount; i++) {
+                    Path blockPath = Paths.get(metadata.getPath(), String.valueOf(i));
+
+                    try {
+                        Files.deleteIfExists(blockPath);
+                    } catch (IOException e) {
+                        System.out.println(e.getMessage());
+                    }
+
+                    fileBlockDAO.deleteByMetadataIdAndSequence(metadata.getId(), i);
+                }
+            }
+
+            metadata.setBlockCount(numBlocks);
+            fileMetadataDAO.update(metadata);
+        } else {
+            metadata = new FileMetadata();
+            metadata.setOwnerId(userId);
+            metadata.setFilename(filename);
+            metadata.setCreatedAt(LocalDateTime.now());
+
+            Path baseDir = Paths.get("storage", String.valueOf(userId), filename);
+            metadata.setPath(baseDir.toString());
+            metadata.setBlockCount(numBlocks);
+
+            fileMetadataDAO.insert(metadata);
+        }
+    }
+
+    public long getFileBlockCount(Integer userId, String filename) {
+        FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
+
+        if (metadata != null && metadata.getBlockCount() != null) {
+            return metadata.getBlockCount();
+        }
+
+        return 0;
+    }
+
     public void uploadBlock(Integer userId, String filename, Block block) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);

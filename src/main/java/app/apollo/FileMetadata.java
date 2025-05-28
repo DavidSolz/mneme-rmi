@@ -8,6 +8,7 @@ public class FileMetadata {
     private String filename;
     private Integer ownerId;
     private String path;
+    private Long blockCount;
     private LocalDateTime createdAt;
 
     public FileMetadata() {}
@@ -50,6 +51,14 @@ public class FileMetadata {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getBlockCount() {
+        return blockCount;
+    }
+
+    public void setBlockCount(Long blockCount) {
+        this.blockCount = blockCount;
     }
 
 }

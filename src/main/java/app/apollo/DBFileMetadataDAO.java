@@ -8,22 +8,20 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DBFileMetadataDAO implements FileMetadataDAO{
+public class DBFileMetadataDAO implements FileMetadataDAO {
 
     private Connection connection;
 
-    public DBFileMetadataDAO(Connection connection)
-    {
+    public DBFileMetadataDAO(Connection connection) {
         this.connection = connection;
     }
 
     @Override
     public boolean insert(FileMetadata metadata) {
-        final String statementString = "INSERT INTO metadata (filename, owner_id, path, created_at) VALUES (?, ?, ?, ?)";
+        final String statementString = "INSERT INTO metadata (filename, owner_id, path, created_at, block_count) VALUES (?, ?, ?, ?, ?)";
         PreparedStatement statement = null;
 
-        if(findByNameAndOwner(metadata.getFilename(), metadata.getOwnerId()) != null)
-        {
+        if (findByNameAndOwner(metadata.getFilename(), metadata.getOwnerId()) != null) {
             return false;
         }
 
@@ -34,8 +32,29 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
             statement.setInt(2, metadata.getOwnerId());
             statement.setString(3, metadata.getPath());
             statement.setString(4, metadata.getCreatedAt().toString());
+            statement.setObject(5, metadata.getBlockCount());
 
-            return statement.execute();
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean update(FileMetadata metadata) {
+        final String statementString = "UPDATE metadata SET path=?, created_at=?, block_count=? WHERE filename=? AND owner_id=?";
+        try (PreparedStatement statement = connection.prepareStatement(statementString)) {
+
+            statement.setString(1, metadata.getPath());
+            statement.setString(2, metadata.getCreatedAt().toString());
+            statement.setObject(3, metadata.getBlockCount()); // Can be null
+            statement.setString(4, metadata.getFilename());
+            statement.setInt(5, metadata.getOwnerId());
+
+            return statement.executeUpdate() > 0;
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -77,8 +96,7 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
 
             metadatas = new ArrayList<>();
 
-            while(result.next())
-            {
+            while (result.next()) {
                 FileMetadata metadata = new FileMetadata();
 
                 metadata.setId(result.getInt("id"));
@@ -111,8 +129,7 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
 
             ResultSet result = statement.executeQuery();
 
-            if(result.next())
-            {
+            if (result.next()) {
                 metadata = new FileMetadata();
 
                 metadata.setId(result.getInt("id"));
@@ -122,7 +139,6 @@ public class DBFileMetadataDAO implements FileMetadataDAO{
                 metadata.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
 
             }
-
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());

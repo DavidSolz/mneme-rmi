@@ -18,21 +18,6 @@ public class DBFileBlockDAO implements FileBlockDAO {
     }
 
     @Override
-    public Block findByMetadataId(Integer metadataId) {
-        String sql = "SELECT * FROM blocks WHERE file_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, metadataId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return extractBlock(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
     public boolean insert(Block block) {
         String sql = " INSERT INTO blocks (user_id, metadata_id, sequence_id, size, checksum) VALUES (?, ?, ?, ?, ?) ON CONFLICT(user_id, metadata_id, sequence_id) DO UPDATE SET size = excluded.size, checksum = excluded.checksum";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -117,6 +102,18 @@ public class DBFileBlockDAO implements FileBlockDAO {
         block.setChecksum(rs.getString("checksum"));
         block.setSize(rs.getInt("size"));
         return block;
+    }
+
+    @Override
+    public void deleteByMetadataIdAndSequence(Integer metadataId, Long sequenceId) {
+        String sql = "DELETE FROM blocks WHERE metadata_id = ? AND sequence_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, metadataId);
+            stmt.setLong(2, sequenceId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }
