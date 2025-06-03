@@ -10,16 +10,39 @@ import java.util.List;
 
 import app.common.Block;
 
+/**
+ * Manages file metadata and blocks, coordinating storage operations and
+ * persistence.
+ * <p>
+ * This class acts as a service layer between the remote file provider and the
+ * data access objects (DAOs) for file metadata and blocks.
+ * It handles creation, update, retrieval, and deletion of file blocks and
+ * metadata.
+ * </p>
+ */
 public class FileProviderManager {
 
     private FileMetadataDAO fileMetadataDAO;
     private FileBlockDAO fileBlockDAO;
 
+    /**
+     * Constructs a FileProviderManager with the specified DAOFactory.
+     *
+     * @param factory DAOFactory to obtain DAO instances for metadata and blocks.
+     */
     public FileProviderManager(DAOFactory factory) {
         this.fileMetadataDAO = factory.getFileMetadataDAO();
         this.fileBlockDAO = factory.getFileBlockDAO();
     }
 
+    /**
+     * Sets the number of blocks a file contains. If the new count is less than the
+     * previous count, removes extra blocks from storage and database.
+     *
+     * @param userId    ID of the user owning the file.
+     * @param filename  Name of the file.
+     * @param numBlocks New block count.
+     */
     public void setFileBlockCount(Integer userId, String filename, long numBlocks) {
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
@@ -56,6 +79,13 @@ public class FileProviderManager {
         }
     }
 
+    /**
+     * Retrieves the number of blocks for the specified file.
+     *
+     * @param userId   ID of the file owner.
+     * @param filename Name of the file.
+     * @return The number of blocks for the file or 0 if metadata not found.
+     */
     public long getFileBlockCount(Integer userId, String filename) {
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
@@ -66,6 +96,14 @@ public class FileProviderManager {
         return 0;
     }
 
+    /**
+     * Uploads a block for the specified file. Creates file metadata if missing.
+     * Stores block data on disk and inserts block info into database.
+     *
+     * @param userId   ID of the user uploading the block.
+     * @param filename Name of the file.
+     * @param block    Block data and metadata.
+     */
     public void uploadBlock(Integer userId, String filename, Block block) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
@@ -99,6 +137,13 @@ public class FileProviderManager {
 
     }
 
+    /**
+     * Deletes the specified file along with all its blocks from both disk and
+     * database.
+     *
+     * @param userId   ID of the file owner.
+     * @param filename Name of the file to delete.
+     */
     public void deleteFile(Integer userId, String filename) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
@@ -129,6 +174,13 @@ public class FileProviderManager {
 
     }
 
+    /**
+     * Retrieves a list of checksums for all blocks of a file.
+     *
+     * @param userId   ID of the file owner.
+     * @param filename Name of the file.
+     * @return List of checksums; empty list if file not found.
+     */
     public List<String> getChecksums(Integer userId, String filename) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
@@ -141,6 +193,15 @@ public class FileProviderManager {
         return fileBlockDAO.findChecksumByUserAndFilename(userId, metadata.getId());
     }
 
+    /**
+     * Downloads a specific block of a file.
+     * Reads block data from disk and returns a Block object with its data.
+     *
+     * @param userId     ID of the file owner.
+     * @param filename   Name of the file.
+     * @param blockIndex Index of the block to download.
+     * @return Block containing the data and metadata; null if not found or error.
+     */
     public Block downloadBlock(Integer userId, String filename, long blockIndex) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
@@ -171,6 +232,12 @@ public class FileProviderManager {
         return null;
     }
 
+    /**
+     * Lists all filenames owned by the specified user.
+     *
+     * @param userId ID of the user.
+     * @return List of filenames belonging to the user; empty if none found.
+     */
     public List<String> listFiles(Integer userId) {
         List<FileMetadata> metadatas = fileMetadataDAO.findByOwnerId(userId);
         List<String> filenames = new ArrayList<>();

@@ -9,10 +9,19 @@ import java.util.List;
 
 import app.common.Block;
 
+/**
+ * Implementation of {@link FileBlockDAO} that interacts with a SQL database to
+ * perform CRUD operations on file blocks.
+ */
 public class DBFileBlockDAO implements FileBlockDAO {
 
     private Connection connection;
 
+    /**
+     * Constructs a new DBFileBlockDAO with the given database connection.
+     *
+     * @param connection the SQL connection to be used for database operations
+     */
     public DBFileBlockDAO(Connection connection) {
         this.connection = connection;
     }
@@ -94,6 +103,13 @@ public class DBFileBlockDAO implements FileBlockDAO {
         }
     }
 
+    /**
+     * Extracts a Block object from the current row of a ResultSet.
+     *
+     * @param rs the ResultSet positioned at a row representing a block
+     * @return the extracted Block object
+     * @throws SQLException if a database access error occurs
+     */
     private Block extractBlock(ResultSet rs) throws SQLException {
         Block block = new Block();
         block.setUserId(rs.getInt("user_id"));

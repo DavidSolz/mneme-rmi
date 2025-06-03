@@ -9,14 +9,40 @@ import app.common.Block;
 import app.common.FileService;
 import app.common.Session;
 
+/**
+ * Remote implementation of the {@link FileService} interface for file
+ * operations.
+ * <p>
+ * This class handles client requests for file block storage, retrieval,
+ * and metadata management. It delegates business logic to a
+ * {@link FileProviderManager},
+ * and uses {@link AuthService} to authenticate users.
+ * </p>
+ *
+ * <p>
+ * Exposed as an RMI service to support distributed file systems.
+ * </p>
+ */
 public class FileProvider extends UnicastRemoteObject implements FileService {
 
+    /** Fixed block size used across all file operations. */
     static final Long BLOCK_SIZE = (long) 1024;
 
+    /** Service responsible for authorization managing */
     private AuthService authService;
+
+    /** Service respnsible for file managing */
     private FileProviderManager fileManager;
 
+    /**
+     * Constructs a new FileProvider service.
+     *
+     * @param authService The authentication service for validating user tokens.
+     * @param fileManager The manager handling the actual file storage operations.
+     * @throws RemoteException If an RMI error occurs during initialization.
+     */
     public FileProvider(AuthService authService, FileProviderManager fileManager) throws RemoteException {
+        super();
         this.authService = authService;
         this.fileManager = fileManager;
     }

@@ -9,10 +9,19 @@ import java.time.LocalDateTime;
 
 import app.common.Session;
 
+/**
+ * Data Access Object (DAO) implementation for accessing and manipulating
+ * User records in the database.
+ */
 public class DBSessionDAO implements SessionDAO {
 
     private Connection connection;
 
+    /**
+     * Constructs a new DBUserDAO with the given database connection.
+     *
+     * @param connection the active database connection
+     */
     public DBSessionDAO(Connection connection) {
         this.connection = connection;
         clearAllSessions();

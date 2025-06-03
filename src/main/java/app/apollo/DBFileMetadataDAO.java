@@ -8,10 +8,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of {@link FileMetadataDAO} to manage file metadata in a SQL database.
+ * Provides CRUD operations on the metadata table.
+ */
 public class DBFileMetadataDAO implements FileMetadataDAO {
 
     private Connection connection;
 
+    /**
+     * Constructs a new DBFileMetadataDAO with the given SQL connection.
+     *
+     * @param connection the SQL connection to use for database operations
+     */
     public DBFileMetadataDAO(Connection connection) {
         this.connection = connection;
     }

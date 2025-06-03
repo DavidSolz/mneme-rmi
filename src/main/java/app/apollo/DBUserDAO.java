@@ -5,6 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Data Access Object (DAO) interface for managing user data.
+ * Provides methods for inserting and querying for user data.
+ */
 public class DBUserDAO implements UserDAO{
 
     private Connection connection;
@@ -56,7 +60,7 @@ public class DBUserDAO implements UserDAO{
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getPassword());
 
-            return statement.execute();
+            return statement.executeUpdate() > 0;
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
