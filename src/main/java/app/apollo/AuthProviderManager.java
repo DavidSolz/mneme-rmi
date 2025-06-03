@@ -40,7 +40,6 @@ public class AuthProviderManager {
      * @throws InvalidParameterException if the credentials are invalid
      */
     public Session login(String username, String password) {
-        Session session = null;
         User user = null;
 
         user = userDAO.findByUsername(username);
@@ -49,33 +48,26 @@ public class AuthProviderManager {
             return null;
         }
 
-        try {
+        if (user.getPassword().equals(password) == false) {
+            throw new InvalidParameterException("Invalid credentials for user '" + username + "'");
+        }
 
-            if (user.getPassword().equals(password) == false) {
-                throw new InvalidParameterException("Invalid credentials for user '" + username + "'");
-            }
-
-            session = sessionDAO.findByUserId(user.getId());
-
+        synchronized (user) {
+            Session session = sessionDAO.findByUserId(user.getId());
             if (session != null) {
                 return session;
             }
 
             String token = UUID.randomUUID().toString();
-
             session = new Session();
-
             session.setUserId(user.getId());
             session.setToken(token);
             session.setCreatedAt(LocalDateTime.now());
 
             sessionDAO.insert(session);
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            return session;
         }
-
-        return session;
     }
 
     /**

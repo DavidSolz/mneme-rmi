@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import app.common.Block;
 
@@ -25,6 +27,9 @@ public class FileProviderManager {
     private FileMetadataDAO fileMetadataDAO;
     private FileBlockDAO fileBlockDAO;
 
+    // ** Locks keyed by "userId:filename" */
+    private final ConcurrentHashMap<String, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
+
     /**
      * Constructs a FileProviderManager with the specified DAOFactory.
      *
@@ -36,6 +41,19 @@ public class FileProviderManager {
     }
 
     /**
+     * Provides a thread safe lock when managing same file
+     *
+     * @param userId
+     * @param filename
+     * @return Lock object that ensuers thread safety
+     */
+    private ReentrantLock getLock(Integer userId, String filename) {
+        String key = userId + ":" + filename;
+        fileLocks.putIfAbsent(key, new ReentrantLock());
+        return fileLocks.get(key);
+    }
+
+    /**
      * Sets the number of blocks a file contains. If the new count is less than the
      * previous count, removes extra blocks from storage and database.
      *
@@ -44,38 +62,46 @@ public class FileProviderManager {
      * @param numBlocks New block count.
      */
     public void setFileBlockCount(Integer userId, String filename, long numBlocks) {
-        FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
-        if (metadata != null) {
-            long oldBlockCount = metadata.getBlockCount();
+        ReentrantLock lock = getLock(userId, filename);
+        lock.lock();
 
-            if (numBlocks < oldBlockCount) {
-                for (long i = numBlocks; i < oldBlockCount; i++) {
-                    Path blockPath = Paths.get(metadata.getPath(), String.valueOf(i));
+        try {
+            FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
-                    try {
-                        Files.deleteIfExists(blockPath);
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
+            if (metadata != null) {
+                long oldBlockCount = metadata.getBlockCount();
+
+                if (numBlocks < oldBlockCount) {
+                    for (long i = numBlocks; i < oldBlockCount; i++) {
+                        Path blockPath = Paths.get(metadata.getPath(), String.valueOf(i));
+
+                        try {
+                            Files.deleteIfExists(blockPath);
+                        } catch (IOException e) {
+                            System.out.println(e.getMessage());
+                        }
+
+                        fileBlockDAO.deleteByMetadataIdAndSequence(metadata.getId(), i);
                     }
-
-                    fileBlockDAO.deleteByMetadataIdAndSequence(metadata.getId(), i);
                 }
+
+                metadata.setBlockCount(numBlocks);
+                fileMetadataDAO.update(metadata);
+            } else {
+                metadata = new FileMetadata();
+                metadata.setOwnerId(userId);
+                metadata.setFilename(filename);
+                metadata.setCreatedAt(LocalDateTime.now());
+
+                Path baseDir = Paths.get("storage", String.valueOf(userId), filename);
+                metadata.setPath(baseDir.toString());
+                metadata.setBlockCount(numBlocks);
+
+                fileMetadataDAO.insert(metadata);
             }
-
-            metadata.setBlockCount(numBlocks);
-            fileMetadataDAO.update(metadata);
-        } else {
-            metadata = new FileMetadata();
-            metadata.setOwnerId(userId);
-            metadata.setFilename(filename);
-            metadata.setCreatedAt(LocalDateTime.now());
-
-            Path baseDir = Paths.get("storage", String.valueOf(userId), filename);
-            metadata.setPath(baseDir.toString());
-            metadata.setBlockCount(numBlocks);
-
-            fileMetadataDAO.insert(metadata);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -106,33 +132,40 @@ public class FileProviderManager {
      */
     public void uploadBlock(Integer userId, String filename, Block block) {
 
-        FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
-
-        if (metadata == null) {
-            metadata = new FileMetadata();
-            metadata.setOwnerId(userId);
-            metadata.setFilename(filename);
-            metadata.setCreatedAt(LocalDateTime.now());
-
-            Path baseDir = Paths.get("storage", String.valueOf(userId), filename);
-            metadata.setPath(baseDir.toString());
-
-            fileMetadataDAO.insert(metadata);
-            metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
-        }
-
-        Path blockPath = Paths.get(metadata.getPath(), String.valueOf(block.getSequenceNumber()));
+        ReentrantLock lock = getLock(userId, filename);
+        lock.lock();
 
         try {
-            Files.createDirectories(blockPath.getParent());
-            Files.write(blockPath, block.getData());
+            FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
-            block.setMetadataId(metadata.getId());
-            block.setUserId(metadata.getOwnerId());
+            if (metadata == null) {
+                metadata = new FileMetadata();
+                metadata.setOwnerId(userId);
+                metadata.setFilename(filename);
+                metadata.setCreatedAt(LocalDateTime.now());
 
-            fileBlockDAO.insert(block);
-        } catch (IOException e) {
-            System.err.println("Failed to upload block: " + e.getMessage());
+                Path baseDir = Paths.get("storage", String.valueOf(userId), filename);
+                metadata.setPath(baseDir.toString());
+
+                fileMetadataDAO.insert(metadata);
+                metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
+            }
+
+            Path blockPath = Paths.get(metadata.getPath(), String.valueOf(block.getSequenceNumber()));
+
+            try {
+                Files.createDirectories(blockPath.getParent());
+                Files.write(blockPath, block.getData());
+
+                block.setMetadataId(metadata.getId());
+                block.setUserId(metadata.getOwnerId());
+
+                fileBlockDAO.insert(block);
+            } catch (IOException e) {
+                System.err.println("Failed to upload block: " + e.getMessage());
+            }
+        } finally {
+            lock.unlock();
         }
 
     }
@@ -146,30 +179,37 @@ public class FileProviderManager {
      */
     public void deleteFile(Integer userId, String filename) {
 
-        FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
-
-        if (metadata == null) {
-            return;
-        }
+        ReentrantLock lock = getLock(userId, filename);
+        lock.lock();
 
         try {
-            Path fileDir = Paths.get(metadata.getPath()).getParent();
-            if (fileDir != null && Files.exists(fileDir)) {
-                Files.walk(fileDir)
-                        .sorted((a, b) -> b.compareTo(a))
-                        .forEach(path -> {
-                            try {
-                                Files.deleteIfExists(path);
-                            } catch (IOException e) {
-                                System.err.println("Failed to delete: " + path + " - " + e.getMessage());
-                            }
-                        });
+            FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
+
+            if (metadata == null) {
+                return;
             }
 
-            fileBlockDAO.deleteByUserAndFilename(metadata.getOwnerId(), metadata.getId());
-            fileMetadataDAO.delete(filename, userId);
-        } catch (IOException e) {
-            System.err.println("Error deleting file: " + e.getMessage());
+            try {
+                Path fileDir = Paths.get(metadata.getPath()).getParent();
+                if (fileDir != null && Files.exists(fileDir)) {
+                    Files.walk(fileDir)
+                            .sorted((a, b) -> b.compareTo(a))
+                            .forEach(path -> {
+                                try {
+                                    Files.deleteIfExists(path);
+                                } catch (IOException e) {
+                                    System.err.println("Failed to delete: " + path + " - " + e.getMessage());
+                                }
+                            });
+                }
+
+                fileBlockDAO.deleteByUserAndFilename(metadata.getOwnerId(), metadata.getId());
+                fileMetadataDAO.delete(filename, userId);
+            } catch (IOException e) {
+                System.err.println("Error deleting file: " + e.getMessage());
+            }
+        } finally {
+            lock.unlock();
         }
 
     }
@@ -184,7 +224,6 @@ public class FileProviderManager {
     public List<String> getChecksums(Integer userId, String filename) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
-        ;
 
         if (metadata == null) {
             return new ArrayList<>();
@@ -239,6 +278,7 @@ public class FileProviderManager {
      * @return List of filenames belonging to the user; empty if none found.
      */
     public List<String> listFiles(Integer userId) {
+
         List<FileMetadata> metadatas = fileMetadataDAO.findByOwnerId(userId);
         List<String> filenames = new ArrayList<>();
 
