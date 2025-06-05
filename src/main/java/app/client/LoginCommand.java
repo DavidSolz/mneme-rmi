@@ -14,7 +14,12 @@ public class LoginCommand implements Command{
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
         sessionContext.setToken(authClient.login(username, password).getToken());
-        System.out.println("Zalogowano");
+        if(authClient.validateToken(sessionContext.getToken())){
+            System.out.println("Zalogowano");
+        }
+        else{
+            System.out.println("Logowanie nieudane");
+        }
     }
     
 }

@@ -16,7 +16,7 @@ public class FileClient {
     public void delete(String filename, String token){
         
     }
-    public void download(String filename, String token){
+    public void download(String filename, String localPath, String token){
         
     }
     public List<String> listFiles(String token){
