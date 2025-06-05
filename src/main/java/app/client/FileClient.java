@@ -10,15 +10,15 @@ public class FileClient {
     private CrypticEngine crypticEngine;
     
     
-    public void upload(String filename){
+    public void upload(String filename, String token){
         
     }
-    public void delete(String filename){
+    public void delete(String filename, String token){
         
     }
-    public void download(String filename){
+    public void download(String filename, String token){
         
     }
-    public List<String> listFiles(){
+    public List<String> listFiles(String token){
         return null; //temp
     }}
