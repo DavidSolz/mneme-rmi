@@ -1,12 +1,14 @@
 package app.client;
 
+import java.util.List;
+
 public class DeleteCommand implements Command{
     
     private String fileName;
     private SessionContext sessionContext;
     
-    public DeleteCommand(String fileName, SessionContext sessionContext){
-        this.fileName = fileName;
+    public DeleteCommand(List<String> parameters, SessionContext sessionContext){
+        this.fileName = parameters.get(1);
         this.sessionContext = sessionContext;
     }
     

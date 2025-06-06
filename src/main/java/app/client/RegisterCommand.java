@@ -1,13 +1,15 @@
 package app.client;
 
+import java.util.List;
+
 public class RegisterCommand implements Command{
     private String userName;
     private String password;
     
     
-    public RegisterCommand(String userName, String password){
-        this.userName = userName;
-        this.password = password;
+    public RegisterCommand(List<String> parameters){
+        this.userName = parameters.get(1);
+        this.password = parameters.get(2);
     }
     
     @Override

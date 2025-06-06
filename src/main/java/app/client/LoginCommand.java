@@ -1,5 +1,7 @@
 package app.client;
 
+import java.util.List;
+
 import app.common.Session;
 
 public class LoginCommand implements Command{
@@ -7,10 +9,10 @@ public class LoginCommand implements Command{
     private String username;
     private String password;
     
-    public LoginCommand(SessionManager sessionManager, String userName, String password){
+    public LoginCommand(List<String> parameters, SessionManager sessionManager){
         this.sessionManager = sessionManager;
-        this.username = userName;
-        this.password = password;
+        this.username = parameters.get(1);
+        this.password = parameters.get(2);
     }
     
     @Override

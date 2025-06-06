@@ -7,7 +7,7 @@ public class ListFilesCommand implements Command{
     
     private SessionContext sessionContext;
     
-    public ListFilesCommand(SessionContext sessionContext){
+    public ListFilesCommand(List<String> parameters, SessionContext sessionContext){
         this.sessionContext = sessionContext;
     }
     

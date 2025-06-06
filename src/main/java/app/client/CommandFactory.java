@@ -26,7 +26,7 @@ public class CommandFactory {
         List<String> parameters = Arrays.asList(input.split(" "));
         classMap.get(parameters.get(0));
         try {
-            command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters);
+            command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

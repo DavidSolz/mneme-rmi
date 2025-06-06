@@ -1,12 +1,14 @@
 package app.client;
 
+import java.util.List;
+
 public class UploadCommand implements Command{
 
     private String localPath;
     private SessionContext sessionContext;
     
-    public UploadCommand(String localPath, SessionContext sessionContext){
-        this.localPath = localPath;
+    public UploadCommand(List<String> parameters, SessionContext sessionContext){
+        this.localPath = parameters.get(1);
         this.sessionContext = sessionContext;
     }
     
