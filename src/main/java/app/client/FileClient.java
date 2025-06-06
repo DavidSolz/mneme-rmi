@@ -16,6 +16,11 @@ public class FileClient {
     private FileService fileService;
     private int clientID;
     
+    public FileClient(FileService fileService){
+        this.fileService = fileService;
+        this.clientID = -1;
+    }
+    
     
     public void upload(String filename, String token){
         List<String> checksums;

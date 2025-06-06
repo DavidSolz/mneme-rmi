@@ -8,6 +8,10 @@ import app.common.Session;
 public class AuthClient {
     private AuthService authService;
     
+    public AuthClient(AuthService authService){
+        this.authService = authService;
+    }
+    
     public Session login(String username, String password){
         try {
             return authService.login(username, password);

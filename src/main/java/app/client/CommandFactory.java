@@ -24,30 +24,83 @@ public class CommandFactory {
         Command command = null;
         
         List<String> parameters = Arrays.asList(input.split(" "));
-        classMap.get(parameters.get(0));
-        try {
-            command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);
-        } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        };
-        
+        if(checkUserInput(parameters)){
+            try {
+                command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);
+            } catch (InstantiationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            };
+        }
+        else{
+            System.out.println("Błędna instrukcja");
+        }
         
         return command;
+    }
+    
+    private boolean checkUserInput(List<String> parameters){
+        
+        
+        if(parameters.size() == 0){
+            return false;
+        }
+        
+        if(parameters.get(0).equals("ListFiles")){
+            if(parameters.size() != 1){
+                return false;
+            }
+        }
+        else if(parameters.get(0).equals("Logout")){
+            if(parameters.size() != 1){
+                return false;
+            }
+            
+        }
+        else if(parameters.get(0).equals("Upload")){
+            if(parameters.size() != 2){
+                return false;
+            }
+        }
+        else if(parameters.get(0).equals("Download")){
+            if(parameters.size() != 3){
+                return false;
+            }
+        }
+        else if(parameters.get(0).equals("Delete")){
+            if(parameters.size() != 2){
+                return false;
+            }
+        }
+        else if(parameters.get(0).equals("Login")){
+            if(parameters.size() != 3){
+                return false;
+            }
+        }
+        else if(parameters.get(0).equals("Register")){
+            if(parameters.size() != 3){
+                return false;
+            }
+        }
+        else{
+            return false;
+        }
+        
+        return true;
     }
 }
