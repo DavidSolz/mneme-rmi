@@ -3,23 +3,26 @@ package app.client;
 import app.common.Session;
 
 public class LoginCommand implements Command{
-    private SessionContext sessionContext;
+    private SessionManager sessionManager;
     private String username;
     private String password;
     
-    public LoginCommand(SessionContext sessionContext, String userName, String password){
-        this.sessionContext = sessionContext;
+    public LoginCommand(SessionManager sessionManager, String userName, String password){
+        this.sessionManager = sessionManager;
         this.username = userName;
         this.password = password;
     }
     
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
+        int userId;
         Session session = authClient.login(username, password);
-        sessionContext.setToken(session.getToken());
-        if(authClient.validateToken(sessionContext.getToken())){
+        String token = session.getToken();
+        if(authClient.validateToken(token)){
             System.out.println("Zalogowano");
-            fileClient.setClientID(session.getUserId());
+            userId = session.getUserId();
+            fileClient.setClientID(userId);
+            sessionManager.saveToFile(String.valueOf(userId), token);
         }
         else{
             System.out.println("Logowanie nieudane");
