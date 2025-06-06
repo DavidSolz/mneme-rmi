@@ -1,7 +1,4 @@
 #!/bin/bash
-
-set -euo pipefail
-
 if [ -f ".env" ]; then
   export $(grep -v '^#' .env | xargs)
 else
