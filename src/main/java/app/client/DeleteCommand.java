@@ -7,14 +7,16 @@ public class DeleteCommand implements Command{
     private String fileName;
     private SessionContext sessionContext;
     
-    public DeleteCommand(List<String> parameters, SessionContext sessionContext){
-        this.fileName = parameters.get(1);
-        this.sessionContext = sessionContext;
-    }
-    
     @Override
     public void execute(FileClient fileClient, AuthClient AuthClient) {
         fileClient.delete(fileName, sessionContext.getToken());
+    }
+
+    @Override
+    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+        this.fileName = parameters.get(1);
+        this.sessionContext = sessionContext;
+        
     }
 
 }

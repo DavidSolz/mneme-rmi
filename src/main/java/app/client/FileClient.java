@@ -23,6 +23,7 @@ public class FileClient {
     
     
     public void upload(String filename, String token){
+        System.out.println(token);
         List<String> checksums;
         List<Block> blocks;
         Block block;
@@ -37,7 +38,8 @@ public class FileClient {
             
             data = Files.readAllBytes(path);
             for(int i = 0; i < data.length; i += blockSize){
-                int realBlockSize = (int)Math.min(blockSize, data.length - i + 1);
+                System.out.println("ASDASDASDASDDASDOINADSFOJNKADSFJNKO");
+                int realBlockSize = (int)Math.min(blockSize, data.length - i);
                 dataPart = new byte[realBlockSize];
                 block = new Block();
                 
@@ -53,7 +55,9 @@ public class FileClient {
             
             fileService.setFileBlockCount(token, filename, blocks.size());
             
-            for(int i = 0; i < blocks.size(); ++i){
+            
+            int maxI = Math.min(blocks.size(), checksums.size());
+            for(int i = 0; i < maxI; ++i){
                 if(blocks.get(i).getChecksum() != checksums.get(i)){
                     fileService.uploadBlock(token, filename, blocks.get(i));
                 }

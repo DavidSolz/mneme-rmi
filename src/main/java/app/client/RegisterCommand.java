@@ -7,10 +7,6 @@ public class RegisterCommand implements Command{
     private String password;
     
     
-    public RegisterCommand(List<String> parameters){
-        this.userName = parameters.get(1);
-        this.password = parameters.get(2);
-    }
     
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
@@ -20,5 +16,13 @@ public class RegisterCommand implements Command{
         else{
             System.out.println("Rejestracja zakończona niepowodzeniem");
         }
+    }
+
+
+
+    @Override
+    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+        this.userName = parameters.get(1);
+        this.password = parameters.get(2);
     }
 }

@@ -40,7 +40,9 @@ public class App {
         while(true){
             input = scanner.nextLine();
             command = commandFactory.createCommand(input, String.valueOf(fileClient.getClientID()));
-            command.execute(fileClient, authClient);
+            if(command != null){
+                command.execute(fileClient, authClient);
+            }
         }
         
     }

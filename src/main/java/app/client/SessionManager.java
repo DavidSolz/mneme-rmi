@@ -14,17 +14,20 @@ public class SessionManager {
     }
     
     public SessionContext loadFromFile(String fileName){
-        SessionContext sessionContext = new SessionContext();
+        SessionContext sessionContext = null;
         Path filePath = Paths.get(basePath + fileName);
         String token = "";
         try {
-            token = new String(Files.readAllBytes(filePath), StandardCharsets.US_ASCII);
+            if(Files.exists(filePath)){
+                token = new String(Files.readAllBytes(filePath), StandardCharsets.US_ASCII);
+                sessionContext = new SessionContext();
+                sessionContext.setToken(token);
+            }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
-        sessionContext.setToken(token);
         
         return sessionContext;
     }
@@ -33,7 +36,15 @@ public class SessionManager {
         Path filePath = Paths.get(basePath + fileName);
         byte [] data = token.getBytes();
         try {
+            System.out.println(filePath);
+            if(!Files.exists(Paths.get(basePath))){
+                Files.createDirectories(Paths.get(basePath));
+            }
+            if(!Files.exists(filePath)){
+                Files.createFile(filePath);
+            }
             Files.write(filePath, data);
+            
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

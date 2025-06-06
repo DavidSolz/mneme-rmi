@@ -2,6 +2,7 @@ package app.client;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ public class CommandFactory {
     
     public CommandFactory(SessionManager sessionManager){
         this.sessionManager = sessionManager;
+        classMap = new HashMap<>();
         classMap.put("ListFiles", ListFilesCommand.class);
         classMap.put("Logout", LogoutCommand.class);
         classMap.put("Upload", UploadCommand.class);
@@ -22,11 +24,17 @@ public class CommandFactory {
     
     public Command createCommand(String input, String userID){
         Command command = null;
-        
+        SessionContext sessionContext;
         List<String> parameters = Arrays.asList(input.split(" "));
         if(checkUserInput(parameters)){
             try {
-                command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);
+                // command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);  
+                command = classMap.get(parameters.get(0)).getConstructor().newInstance();
+                sessionContext = sessionManager.loadFromFile(userID);
+                // if(sessionContext != null){
+                command.setEvrything(parameters, sessionManager.loadFromFile(userID), sessionManager);
+                    
+                // }
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -103,4 +111,5 @@ public class CommandFactory {
         
         return true;
     }
+    
 }

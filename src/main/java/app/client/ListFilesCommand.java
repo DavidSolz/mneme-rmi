@@ -7,10 +7,6 @@ public class ListFilesCommand implements Command{
     
     private SessionContext sessionContext;
     
-    public ListFilesCommand(List<String> parameters, SessionContext sessionContext){
-        this.sessionContext = sessionContext;
-    }
-    
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
         List<String> fileList;
@@ -24,6 +20,11 @@ public class ListFilesCommand implements Command{
         }
         
         
+    }
+
+    @Override
+    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+        this.sessionContext = sessionContext;
     }
 
 }

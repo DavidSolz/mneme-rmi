@@ -9,11 +9,6 @@ public class LoginCommand implements Command{
     private String username;
     private String password;
     
-    public LoginCommand(List<String> parameters, SessionManager sessionManager){
-        this.sessionManager = sessionManager;
-        this.username = parameters.get(1);
-        this.password = parameters.get(2);
-    }
     
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
@@ -29,6 +24,14 @@ public class LoginCommand implements Command{
         else{
             System.out.println("Logowanie nieudane");
         }
+    }
+
+
+    @Override
+    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+        this.username = parameters.get(1);
+        this.password = parameters.get(2);
     }
     
 }
