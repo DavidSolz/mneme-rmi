@@ -56,9 +56,13 @@ public class FileClient {
             fileService.setFileBlockCount(token, filename, blocks.size());
             
             
-            int maxI = Math.min(blocks.size(), checksums.size());
-            for(int i = 0; i < maxI; ++i){
-                if(blocks.get(i).getChecksum() != checksums.get(i)){
+            for(int i = 0; i < blocks.size(); ++i){
+                if(i < checksums.size()){
+                    if(blocks.get(i).getChecksum() != checksums.get(i)){
+                        fileService.uploadBlock(token, filename, blocks.get(i));
+                    }
+                }
+                else{
                     fileService.uploadBlock(token, filename, blocks.get(i));
                 }
             }
@@ -93,29 +97,58 @@ public class FileClient {
     
     public void download(String filename, String localPath, String token){
         List<Block> blocks;
+        Block temp;
+        String tempHash;
         long blockCount;
         int helperId;
         int fileTotalSize;
         byte [] data;
         Path path = Paths.get(localPath);
+        boolean fileExists;
         
         try {
-            blockCount = fileService.getFileBlockCount(token, filename);
-            blocks = new LinkedList<>();
-            for(int i = 0; i < blockCount; ++i){
-                blocks.add(fileService.downloadBlock(token, filename, i));
+            
+            fileExists = false;
+            List<String> fileList = fileService.listFiles(token);
+            for(String i:fileList){
+                if(i.equals(filename)){
+                    fileExists = true;
+                }
             }
-            helperId = 0;
-            fileTotalSize = 0;
-            for(Block i:blocks){
-                fileTotalSize += i.getSize();
+            
+            if(!fileExists){
+                System.out.println("Plik o takiej nazwie nie istnieje");
             }
-            data = new byte[fileTotalSize];
-            for(Block i:blocks){
-                System.arraycopy(i.getData(), 0, data, helperId, i.getSize());
-                helperId += i.getSize();
+            else{
+                blockCount = fileService.getFileBlockCount(token, filename);
+                blocks = new LinkedList<>();
+                
+                for(int i = 0; i < blockCount; ++i){
+                    temp = fileService.downloadBlock(token, filename, i);
+                    tempHash = CrypticEngine.weakHash(temp.getData(), temp.getSize());
+                    while(!tempHash.equals(temp.getChecksum())){
+                        System.out.println("Blok pobrany błędnie, popnowne pobieranie");
+                        temp = fileService.downloadBlock(token, filename, i);
+                        tempHash = CrypticEngine.weakHash(temp.getData(), temp.getSize());        
+                    }
+                    blocks.add(temp);
+                }
+                
+                helperId = 0;
+                fileTotalSize = 0;
+                for(Block i:blocks){
+                    fileTotalSize += i.getSize();
+                    System.out.println(i.getData());
+                }
+                data = new byte[fileTotalSize];
+                for(Block i:blocks){
+                    System.arraycopy(i.getData(), 0, data, helperId, i.getSize());
+                    helperId += i.getSize();
+                }
+                Files.write(path, data);
+                System.out.println("Pobrano plik");
             }
-            Files.write(path, data);
+            
             
         } catch (RemoteException e) {
             // TODO Auto-generated catch block

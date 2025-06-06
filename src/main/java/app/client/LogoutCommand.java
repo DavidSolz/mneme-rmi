@@ -14,7 +14,7 @@ public class LogoutCommand implements Command{
 
 
     @Override
-    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
         this.sessionContext = sessionContext;
     }
     

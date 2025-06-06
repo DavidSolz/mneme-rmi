@@ -13,7 +13,7 @@ public class DeleteCommand implements Command{
     }
 
     @Override
-    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
         this.fileName = parameters.get(1);
         this.sessionContext = sessionContext;
         

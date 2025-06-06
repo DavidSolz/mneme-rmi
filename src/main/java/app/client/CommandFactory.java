@@ -32,7 +32,7 @@ public class CommandFactory {
                 command = classMap.get(parameters.get(0)).getConstructor().newInstance();
                 sessionContext = sessionManager.loadFromFile(userID);
                 // if(sessionContext != null){
-                command.setEvrything(parameters, sessionManager.loadFromFile(userID), sessionManager);
+                command.setEverything(parameters, sessionManager.loadFromFile(userID), sessionManager);
                     
                 // }
             } catch (InstantiationException e) {

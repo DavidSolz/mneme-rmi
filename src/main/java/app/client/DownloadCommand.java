@@ -15,7 +15,7 @@ public class DownloadCommand implements Command{
 
 
     @Override
-    public void setEvrything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
+    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
         this.localPath = parameters.get(1);
         this.fileName = parameters.get(2);
         this.sessionContext = sessionContext;
