@@ -62,7 +62,6 @@ public class FileClient {
 
             data = Files.readAllBytes(path);
             for (int i = 0; i < data.length; i += blockSize) {
-                System.out.println("ASDASDASDASDDASDOINADSFOJNKADSFJNKO");
                 int realBlockSize = (int) Math.min(blockSize, data.length - i);
                 dataPart = new byte[realBlockSize];
                 block = new Block();
@@ -140,7 +139,24 @@ public class FileClient {
         boolean fileExists;
 
         try {
-
+            
+            String [] directories = localPath.split("/");
+            
+            StringBuilder directory = new StringBuilder();
+            
+            for(int i = 0; i < directories.length - 1; ++i){
+                directory.append(directories[i]);
+                directory.append("/");
+            }
+            
+            if(directories.length > 1){
+                Path localPath2 = Paths.get(directory.toString());
+                System.out.println(localPath2.toString());
+                if(!Files.exists(localPath2)){
+                    Files.createDirectories(localPath2);
+                }
+            }
+            
             fileExists = false;
             List<String> fileList = fileService.listFiles(token);
             for (String i : fileList) {
@@ -154,7 +170,7 @@ public class FileClient {
             } else {
                 blockCount = fileService.getFileBlockCount(token, filename);
 
-                System.out.println("Plik zawiera " + blockCount + " bloków");
+                System.out.println("Plik zawiera " + blockCount + " bloki");
 
                 blocks = new LinkedList<>();
                 long startTime = System.currentTimeMillis();

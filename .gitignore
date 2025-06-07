@@ -5,9 +5,10 @@
 /.code/
 /[Ss]torage/
 /[Tt]okens/
-
+/[Uu]sun/
 # Files
 
 *.env
 *.db
 *.bak
+

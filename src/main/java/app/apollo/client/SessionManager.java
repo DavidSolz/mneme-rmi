@@ -36,7 +36,6 @@ public class SessionManager {
         Path filePath = Paths.get(basePath + fileName);
         byte [] data = token.getBytes();
         try {
-            System.out.println(filePath);
             if(!Files.exists(Paths.get(basePath))){
                 Files.createDirectories(Paths.get(basePath));
             }
