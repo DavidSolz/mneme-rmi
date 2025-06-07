@@ -15,12 +15,31 @@ import app.apollo.common.FileService;
 public class FileClient {
     private FileService fileService;
     private int clientID;
-
+    private static String lastLoggedUserFileName;
+    
     public FileClient(FileService fileService) {
         this.fileService = fileService;
-        this.clientID = -1;
+        
+        if(Files.exists(Paths.get(lastLoggedUserFileName))){
+            try {
+                this.clientID = Integer.parseInt(new String(Files.readAllBytes(Paths.get(lastLoggedUserFileName))));
+            } catch (NumberFormatException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        else{
+            this.clientID = -1;
+        }
     }
 
+    public static void setLastLoggedUserFileName(String lastLoggedUserFileName) {
+        FileClient.lastLoggedUserFileName = lastLoggedUserFileName;
+    }
+    
     private void printProgress(String operation, double percent, long remainingMillis) {
         int width = 30;
         int pos = (int) (percent / 100.0 * width);

@@ -8,8 +8,13 @@ public class DeleteCommand implements Command{
     private SessionContext sessionContext;
     
     @Override
-    public void execute(FileClient fileClient, AuthClient AuthClient) {
-        fileClient.delete(fileName, sessionContext.getToken());
+    public void execute(FileClient fileClient, AuthClient authClient) {
+        if(authClient.validateToken(sessionContext.getToken())){
+            fileClient.delete(fileName, sessionContext.getToken());
+        }
+        else{
+            System.out.println("Nie jesteś zalogowany");
+        }
     }
 
     @Override

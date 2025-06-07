@@ -9,7 +9,12 @@ public class UploadCommand implements Command{
     
     @Override
     public void execute(FileClient fileClient, AuthClient authClient) {
-        fileClient.upload(localPath, sessionContext.getToken());
+        if(authClient.validateToken(sessionContext.getToken())){
+            fileClient.upload(localPath, sessionContext.getToken());
+        }
+        else{
+            System.out.println("Nie jesteś zalogowany");
+        }
     }
 
     @Override

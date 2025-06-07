@@ -9,14 +9,20 @@ public class ListFilesCommand implements Command{
     
     @Override
     public void execute(FileClient fileClient, AuthClient authClient){
-        List<String> fileList;
-        
-        fileList = fileClient.listFiles(sessionContext.getToken());
-        
-        System.out.println("Files list:");
-        
-        for(String i:fileList){
-            System.out.println("- " + i);
+        if(authClient.validateToken(sessionContext.getToken())){
+            
+            List<String> fileList;
+            
+            fileList = fileClient.listFiles(sessionContext.getToken());
+            
+            System.out.println("Files list:");
+            
+            for(String i:fileList){
+                System.out.println("- " + i);
+            }
+        }
+        else{
+            System.out.println("Nie jesteś zalogowany");
         }
         
         

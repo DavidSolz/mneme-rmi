@@ -22,6 +22,9 @@ public class App {
          * AuthService authService = (AuthService) registry.lookup("AuthService");
          * FileService fileService = (FileService) registry.lookup("FileService");
          */
+        String lastLogedUserIDFileName = "lastLogged";
+        FileClient.setLastLoggedUserFileName(lastLogedUserIDFileName);
+        LoginCommand.setLastLoggedUserFileName(lastLogedUserIDFileName);
         
         String portString = System.getenv("PORT");
         Integer port = portString != null ? Integer.parseInt(portString) : 2567;
@@ -36,6 +39,7 @@ public class App {
         Scanner scanner = new Scanner(System.in);
         String input;
         Command command;
+        LogoutCommand.setBasePath(basePath);
         
         while(true){
             input = scanner.nextLine();

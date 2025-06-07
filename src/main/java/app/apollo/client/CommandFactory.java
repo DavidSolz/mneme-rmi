@@ -31,8 +31,11 @@ public class CommandFactory {
                 // command = classMap.get(parameters.get(0)).getDeclaredConstructor().newInstance(parameters, sessionManager);  
                 command = classMap.get(parameters.get(0)).getConstructor().newInstance();
                 sessionContext = sessionManager.loadFromFile(userID);
-                // if(sessionContext != null){
-                command.setEverything(parameters, sessionManager.loadFromFile(userID), sessionManager);
+                if(sessionContext == null){
+                    sessionContext = new SessionContext();
+                    sessionContext.setToken("Invalid Token");
+                }
+                command.setEverything(parameters, sessionContext, sessionManager);
                     
                 // }
             } catch (InstantiationException e) {

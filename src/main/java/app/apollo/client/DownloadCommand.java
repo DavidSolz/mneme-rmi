@@ -10,7 +10,12 @@ public class DownloadCommand implements Command{
 
     @Override
     public void execute(FileClient fileClient, AuthClient authClient) {
-        fileClient.download(fileName, localPath, sessionContext.getToken());
+        if(authClient.validateToken(sessionContext.getToken())){
+            fileClient.download(fileName, localPath, sessionContext.getToken());
+        }
+        else{
+            System.out.println("Nie jesteś zalogowany");
+        }
     }
 
 
