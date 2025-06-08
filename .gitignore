@@ -8,8 +8,9 @@
 /[Uu]sun/
 # Files
 
-*.env
 *.db
 *.bak
+
+lastLogged
 
 
