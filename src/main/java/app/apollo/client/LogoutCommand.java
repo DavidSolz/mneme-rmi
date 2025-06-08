@@ -1,21 +1,33 @@
 package app.apollo.client;
 
-import java.util.List;
+public class LogoutCommand implements Command {
 
-public class LogoutCommand implements Command{
+    private final Context ctx;
 
-    private SessionContext sessionContext;
-    
-    
-    @Override
-    public void execute(FileClient fileClient, AuthClient authClient){
-        authClient.logout(sessionContext.getToken());
+    public LogoutCommand(Context ctx) {
+        this.ctx = ctx;
     }
 
+    @Override
+    public void execute(String[] args) throws Exception {
+
+        String token = ctx.session.getToken();
+
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("There is no session to end.");
+        }
+
+        ctx.authService.logout(token);
+    }
 
     @Override
-    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
-        this.sessionContext = sessionContext;
+    public String getName() {
+        return "logout";
     }
-    
+
+    @Override
+    public String getDescription() {
+        return "logout - Ends the session";
+    }
+
 }

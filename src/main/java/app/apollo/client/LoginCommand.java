@@ -1,37 +1,40 @@
 package app.apollo.client;
 
-import java.util.List;
-
 import app.apollo.common.Session;
 
-public class LoginCommand implements Command{
-    private SessionManager sessionManager;
-    private String username;
-    private String password;
-    
-    
-    @Override
-    public void execute(FileClient fileClient, AuthClient authClient){
-        int userId;
-        Session session = authClient.login(username, password);
-        String token = session.getToken();
-        if(authClient.validateToken(token)){
-            System.out.println("Zalogowano");
-            userId = session.getUserId();
-            fileClient.setClientID(userId);
-            sessionManager.saveToFile(String.valueOf(userId), token);
-        }
-        else{
-            System.out.println("Logowanie nieudane");
-        }
+public class LoginCommand implements Command {
+
+    private final Context ctx;
+
+    public LoginCommand(Context ctx) {
+        this.ctx = ctx;
     }
 
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 3) {
+            throw new IllegalArgumentException("Usage: login <username> <password>");
+        }
+
+        Session session = ctx.authService.login(args[1], args[2]);
+
+        if (session == null) {
+            System.out.println("Login failed.");
+            return;
+        }
+
+        ctx.session = session;
+        System.out.println("Login successful.");
+    }
 
     @Override
-    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
-        this.username = parameters.get(1);
-        this.password = parameters.get(2);
+    public String getName() {
+        return "login";
     }
-    
+
+    @Override
+    public String getDescription() {
+        return "login <username> <password> - Login into service";
+    }
+
 }

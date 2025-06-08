@@ -1,7 +1,5 @@
 package app.apollo.client;
 
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
@@ -11,40 +9,54 @@ import app.apollo.common.FileService;
 
 public class App {
 
-    public static void main(String[] args) throws RemoteException, NotBoundException {
-        /*
-         * ======== HOW TO CONNECT TO SERVICE ========
-         *
-         * String portString = System.getenv("PORT");
-         * Integer port = portString != null ? Integer.parseInt(portString) : 2567;
-         * Registry registry = LocateRegistry.getRegistry("localhost", port);
-         *
-         * AuthService authService = (AuthService) registry.lookup("AuthService");
-         * FileService fileService = (FileService) registry.lookup("FileService");
-         */
-        
-        String portString = System.getenv("PORT");
-        Integer port = portString != null ? Integer.parseInt(portString) : 2567;
-        Registry registry = LocateRegistry.getRegistry("localhost", port);
-        AuthService authService = (AuthService) registry.lookup("AuthService");
-        FileService fileService = (FileService) registry.lookup("FileService");
-        String basePath = "tokens/";
-        SessionManager sessionManager = new SessionManager(basePath);
-        CommandFactory commandFactory = new CommandFactory(sessionManager);
-        FileClient fileClient = new FileClient(fileService);
-        AuthClient authClient = new AuthClient(authService);
-        Scanner scanner = new Scanner(System.in);
-        String input;
-        Command command;
-        
-        while(true){
-            input = scanner.nextLine();
-            command = commandFactory.createCommand(input, String.valueOf(fileClient.getClientID()));
-            if(command != null){
-                command.execute(fileClient, authClient);
+    public static void main(String[] args) {
+
+        try {
+
+            String portString = System.getenv("PORT");
+            Integer port = portString != null ? Integer.parseInt(portString) : 2567;
+            Registry registry = LocateRegistry.getRegistry("localhost", port);
+
+            AuthService authService = (AuthService) registry.lookup("AuthService");
+            FileService fileService = (FileService) registry.lookup("FileService");
+
+            Context context = new Context();
+            context.authService = authService;
+            context.fileService = fileService;
+
+            CommandFactory factory = new CommandFactory(context);
+
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println(">> Apollo RMI Client");
+
+            while (true) {
+                System.out.print("> ");
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split("\\s+");
+                Command command = factory.get(parts[0]);
+
+                if (command == null) {
+                    System.out.println("Unknown command. Type 'help'.");
+                    continue;
+                }
+
+                try {
+                    command.execute(parts);
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+
             }
+
+        } catch (Exception e) {
+            System.out.println("Fatal error: " + e.getMessage());
         }
-        
+
     }
 
 }

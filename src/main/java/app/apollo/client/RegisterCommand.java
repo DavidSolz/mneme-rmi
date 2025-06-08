@@ -1,28 +1,30 @@
 package app.apollo.client;
 
-import java.util.List;
+public class RegisterCommand implements Command {
 
-public class RegisterCommand implements Command{
-    private String userName;
-    private String password;
-    
-    
-    
-    @Override
-    public void execute(FileClient fileClient, AuthClient authClient){
-        if(authClient.register(userName, password)){
-            System.out.println("Rejestracja zakończona powodzeniem");
-        }
-        else{
-            System.out.println("Rejestracja zakończona niepowodzeniem");
-        }
+    private final Context ctx;
+
+    public RegisterCommand(Context ctx) {
+        this.ctx = ctx;
     }
 
-
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 3) {
+            throw new IllegalArgumentException("Usage: register <username> <password>");
+        }
+        boolean ok = ctx.authService.register(args[1], args[2]);
+        System.out.println(ok ? "Registration successful." : "Registration failed.");
+    }
 
     @Override
-    public void setEverything(List<String> parameters, SessionContext sessionContext, SessionManager sessionManager) {
-        this.userName = parameters.get(1);
-        this.password = parameters.get(2);
+    public String getName() {
+        return "register";
     }
+
+    @Override
+    public String getDescription() {
+        return "register <username> <password> - Register a new user";
+    }
+
 }
