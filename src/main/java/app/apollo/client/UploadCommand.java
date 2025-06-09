@@ -10,7 +10,11 @@ public class UploadCommand implements Command {
 
     private String localPath; // The local path of the file to upload.
     private SessionContext sessionContext; // Holds the session context for the current user.
-
+    
+    /**
+     * Default constructor for UploadCommand.
+     */
+    public UploadCommand() {}
     /**
      * Executes the command to upload a file.
      * It validates the session token and uploads the file if the user is authenticated.

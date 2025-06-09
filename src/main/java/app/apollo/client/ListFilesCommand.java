@@ -11,6 +11,10 @@ public class ListFilesCommand implements Command {
     private SessionContext sessionContext; // Holds the session context for the current user.
 
     /**
+     * Default constructor for ListFilesCommand.
+     */
+    public ListFilesCommand() {}
+    /**
      * Executes the command to list files.
      * It validates the session token and retrieves the list of files from the remote service.
      * 

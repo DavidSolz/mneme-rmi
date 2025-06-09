@@ -16,7 +16,12 @@ public class LoginCommand implements Command {
     private String username; // The username provided by the user.
     private String password; // The password provided by the user.
     private static String lastLoggedUserFileName; // File to store the last logged user's ID.
-
+    
+    /**
+     * Default constructor for LoginCommand.
+     */
+    public LoginCommand() {}
+    
     /**
      * Sets the file name used to store the last logged user's ID.
      * 

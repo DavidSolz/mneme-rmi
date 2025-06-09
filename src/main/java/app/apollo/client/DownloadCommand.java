@@ -12,6 +12,11 @@ public class DownloadCommand implements Command {
     private SessionContext sessionContext; // Holds the session context for the current user.
 
     /**
+     * Default constructor for DownloadCommand.
+     */
+    public DownloadCommand() {}
+    
+    /**
      * Executes the command to download a file.
      * It validates the session token and downloads the file if the user is authenticated.
      * 

@@ -12,6 +12,11 @@ public class DeleteCommand implements Command {
     private SessionContext sessionContext; // Holds the session context for the current user.
 
     /**
+     * Default constructor for DeleteCommand.
+     */
+    public DeleteCommand() {}
+    
+    /**
      * Executes the command to delete a file.
      * It validates the session token and deletes the file if the user is authenticated.
      * 

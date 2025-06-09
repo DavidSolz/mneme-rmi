@@ -16,6 +16,10 @@ public class LogoutCommand implements Command {
     private static String basePath; // Base directory for storing session-related files.
 
     /**
+     * Default constructor for LogoutCommand.
+    */
+    public LogoutCommand() {}
+    /**
      * Sets the base path for session-related files.
      * 
      * @param basePath The base directory to set.

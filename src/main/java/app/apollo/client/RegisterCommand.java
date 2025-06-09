@@ -11,6 +11,10 @@ public class RegisterCommand implements Command {
     private String password; // The password provided by the user.
 
     /**
+     * Default constructor for RegisterCommand.
+     */
+    public RegisterCommand() {}
+    /**
      * Executes the registration process.
      * It sends the username and password to the AuthClient for registration.
      * 
