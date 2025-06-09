@@ -95,7 +95,6 @@ public class FileClient {
      * @param token    The authentication token of the user.
      */
     public void upload(String filename, String token) {
-        System.out.println(token);
         List<String> checksums;
         List<Block> blocks;
         Block block;
