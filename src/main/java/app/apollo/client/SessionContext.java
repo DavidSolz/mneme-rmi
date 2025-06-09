@@ -8,6 +8,13 @@ public class SessionContext {
     private String token; // The session token associated with the user.
 
     /**
+     * Default constructor for SessionContext.
+     */
+    public SessionContext() {
+        this.token = null; // Initialize the token to null.
+    }
+    
+    /**
      * Sets the session token.
      * 
      * @param token The session token to set.
