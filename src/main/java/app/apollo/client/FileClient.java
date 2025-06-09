@@ -12,36 +12,60 @@ import app.apollo.common.Block;
 import app.apollo.common.CrypticEngine;
 import app.apollo.common.FileService;
 
+/**
+ * FileClient is responsible for interacting with the remote FileService.
+ * It provides methods for uploading, downloading, deleting, and listing files.
+ */
 public class FileClient {
-    private FileService fileService;
-    private int clientID;
-    private static String lastLoggedUserFileName;
-    
+    private FileService fileService; // Remote file service for file operations.
+    private int clientID; // ID of the client using this FileClient instance.
+    private static String lastLoggedUserFileName; // File storing the last logged user's ID.
+
+    /**
+     * Constructor to initialize the FileClient with a remote FileService.
+     * It also attempts to load the last logged user's ID from a file.
+     * 
+     * @param fileService The remote file service to use.
+     */
     public FileClient(FileService fileService) {
         this.fileService = fileService;
-        
-        if(Files.exists(Paths.get(lastLoggedUserFileName))){
+
+        // Check if the file storing the last logged user's ID exists.
+        if (Files.exists(Paths.get(lastLoggedUserFileName))) {
             try {
+                // Read the client ID from the file.
                 this.clientID = Integer.parseInt(new String(Files.readAllBytes(Paths.get(lastLoggedUserFileName))));
             } catch (NumberFormatException e) {
-                // TODO Auto-generated catch block
+                // Handle invalid number format in the file.
                 System.out.println(e.getMessage());
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // Handle file read errors.
                 System.out.println(e.getMessage());
             }
-        }
-        else{
+        } else {
+            // Set default client ID if the file does not exist.
             this.clientID = -1;
         }
     }
 
+    /**
+     * Sets the file name used to store the last logged user's ID.
+     * 
+     * @param lastLoggedUserFileName The file name to set.
+     */
     public static void setLastLoggedUserFileName(String lastLoggedUserFileName) {
         FileClient.lastLoggedUserFileName = lastLoggedUserFileName;
     }
-    
+
+    /**
+     * Prints a progress bar for file operations.
+     * 
+     * @param operation      The name of the operation (e.g., "Uploading").
+     * @param percent        The percentage of completion.
+     * @param remainingMillis The estimated remaining time in milliseconds.
+     */
     private void printProgress(String operation, double percent, long remainingMillis) {
-        int width = 30;
+        int width = 30; // Width of the progress bar.
         int pos = (int) (percent / 100.0 * width);
         StringBuilder bar = new StringBuilder();
         bar.append("\r").append(operation).append(" [");
@@ -64,6 +88,12 @@ public class FileClient {
         System.out.print(bar);
     }
 
+    /**
+     * Uploads a file to the remote service.
+     * 
+     * @param filename The name of the file to upload.
+     * @param token    The authentication token of the user.
+     */
     public void upload(String filename, String token) {
         System.out.println(token);
         List<String> checksums;
@@ -74,17 +104,20 @@ public class FileClient {
         byte[] dataPart;
         Path path = Paths.get(filename);
         try {
+            // Retrieve existing checksums and block size from the remote service.
             checksums = fileService.getChecksums(token, filename);
             blockSize = fileService.getBlockSize();
 
             blocks = new LinkedList<>();
 
+            // Read the file data and divide it into blocks.
             data = Files.readAllBytes(path);
             for (int i = 0; i < data.length; i += blockSize) {
                 int realBlockSize = (int) Math.min(blockSize, data.length - i);
                 dataPart = new byte[realBlockSize];
                 block = new Block();
 
+                // Copy data into the block and set its properties.
                 System.arraycopy(data, i, dataPart, 0, realBlockSize);
                 block.setUserId(this.clientID);
                 block.setSequenceNumber(i / blockSize);
@@ -95,12 +128,14 @@ public class FileClient {
                 blocks.add(block);
             }
 
+            // Set the total number of blocks in the remote service.
             fileService.setFileBlockCount(token, filename, blocks.size());
 
             long startTime = System.currentTimeMillis();
             int totalBlocks = blocks.size();
             int uploadedCount = 0;
 
+            // Upload each block to the remote service.
             for (int i = 0; i < blocks.size(); ++i) {
                 if (i < checksums.size()) {
                     if (blocks.get(i).getChecksum() != checksums.get(i)) {
@@ -122,16 +157,24 @@ public class FileClient {
             System.out.println("\nWysłano plik");
 
         } catch (RemoteException e) {
-            // TODO Auto-generated catch block
+            // Handle remote communication errors.
             System.out.println(e.getMessage());
         } catch (IOException e) {
+            // Handle file read/write errors.
             System.out.println(e.getMessage());
         }
     }
 
+    /**
+     * Deletes a file from the remote service.
+     * 
+     * @param filename The name of the file to delete.
+     * @param token    The authentication token of the user.
+     */
     public void delete(String filename, String token) {
         List<String> checksums;
         try {
+            // Retrieve checksums to verify file existence.
             checksums = fileService.getChecksums(token, filename);
             if (checksums.size() == 0) {
                 System.out.println("Brak pliku o takiej nazwie");
@@ -139,12 +182,18 @@ public class FileClient {
                 fileService.deleteFile(token, filename);
             }
         } catch (RemoteException e) {
-            // TODO Auto-generated catch block
+            // Handle remote communication errors.
             System.out.println(e.getMessage());
         }
-
     }
 
+    /**
+     * Downloads a file from the remote service.
+     * 
+     * @param filename  The name of the file to download.
+     * @param localPath The local path to save the downloaded file.
+     * @param token     The authentication token of the user.
+     */
     public void download(String filename, String localPath, String token) {
         List<Block> blocks;
         Block temp;
@@ -157,24 +206,20 @@ public class FileClient {
         boolean fileExists;
 
         try {
-            
-            String [] directories = localPath.split("/");
-            
+            // Ensure the local directory exists.
+            String[] directories = localPath.split("/");
             StringBuilder directory = new StringBuilder();
-            
-            for(int i = 0; i < directories.length - 1; ++i){
-                directory.append(directories[i]);
-                directory.append("/");
+            for (int i = 0; i < directories.length - 1; ++i) {
+                directory.append(directories[i]).append("/");
             }
-            
-            if(directories.length > 1){
+            if (directories.length > 1) {
                 Path localPath2 = Paths.get(directory.toString());
-                System.out.println(localPath2.toString());
-                if(!Files.exists(localPath2)){
+                if (!Files.exists(localPath2)) {
                     Files.createDirectories(localPath2);
                 }
             }
-            
+
+            // Check if the file exists on the remote service.
             fileExists = false;
             List<String> fileList = fileService.listFiles(token);
             for (String i : fileList) {
@@ -186,13 +231,14 @@ public class FileClient {
             if (!fileExists) {
                 System.out.println("Plik o takiej nazwie nie istnieje");
             } else {
+                // Retrieve the number of blocks in the file.
                 blockCount = fileService.getFileBlockCount(token, filename);
-
                 System.out.println("Plik zawiera " + blockCount + " bloki");
 
                 blocks = new LinkedList<>();
                 long startTime = System.currentTimeMillis();
 
+                // Download each block and verify its checksum.
                 for (int i = 0; i < blockCount; ++i) {
                     temp = fileService.downloadBlock(token, filename, i);
                     tempHash = CrypticEngine.weakHash(temp.getData(), temp.getSize());
@@ -211,6 +257,7 @@ public class FileClient {
                     printProgress("Pobieranie", progress, remainingTime);
                 }
 
+                // Combine all blocks into a single file.
                 helperId = 0;
                 fileTotalSize = 0;
                 for (Block i : blocks) {
@@ -226,31 +273,45 @@ public class FileClient {
             }
 
         } catch (RemoteException e) {
-            // TODO Auto-generated catch block
+            // Handle remote communication errors.
             System.out.println(e.getMessage());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            // Handle file read/write errors.
             System.out.println(e.getMessage());
         }
-
     }
 
+    /**
+     * Lists all files available on the remote service.
+     * 
+     * @param token The authentication token of the user.
+     * @return A list of file names.
+     */
     public List<String> listFiles(String token) {
         try {
             return fileService.listFiles(token);
         } catch (RemoteException e) {
-            // TODO Auto-generated catch block
+            // Handle remote communication errors.
             System.out.println(e.getMessage());
         }
         return null;
     }
 
+    /**
+     * Sets the client ID for this FileClient instance.
+     * 
+     * @param clientID The client ID to set.
+     */
     public void setClientID(int clientID) {
         this.clientID = clientID;
     }
 
+    /**
+     * Retrieves the client ID for this FileClient instance.
+     * 
+     * @return The client ID.
+     */
     public int getClientID() {
         return clientID;
     }
-
 }
