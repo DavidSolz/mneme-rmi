@@ -41,16 +41,18 @@ public class App {
         CommandFactory commandFactory = new CommandFactory(sessionManager);
         FileClient fileClient = new FileClient(fileService);
         AuthClient authClient = new AuthClient(authService);
-        Scanner scanner = new Scanner(System.in);
         String input;
         Command command;
         LogoutCommand.setBasePath(basePath);
         
-        while(true){
-            input = scanner.nextLine();
-            command = commandFactory.createCommand(input, String.valueOf(fileClient.getClientID()));
-            if(command != null){
-                command.execute(fileClient, authClient);
+        try(Scanner scanner = new Scanner(System.in))
+        {
+            while(true){
+                input = scanner.nextLine();
+                command = commandFactory.createCommand(input, String.valueOf(fileClient.getClientID()));
+                if(command != null){
+                    command.execute(fileClient, authClient);
+                }
             }
         }
         
