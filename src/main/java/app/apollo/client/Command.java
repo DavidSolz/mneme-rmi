@@ -15,7 +15,7 @@ public interface Command {
      * @param fileClient The FileClient instance for file-related operations.
      * @param authClient The AuthClient instance for authentication operations.
      */
-    public void execute(FileClient fileClient, AuthClient AuthClient);
+    public void execute(FileClient fileClient, AuthClient authClient);
 
     /**
      * Sets the necessary context and parameters for the command.

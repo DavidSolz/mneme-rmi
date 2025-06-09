@@ -8,9 +8,14 @@ import java.util.Scanner;
 
 import app.apollo.common.AuthService;
 import app.apollo.common.FileService;
-
+/**
+ * App is the main class for the Apollo client application.
+ * It initializes the necessary services and starts the command processing loop.
+ * The application connects to remote services for authentication and file management,
+ * allowing users to log in, register, and perform file operations.
+ */
 public class App {
-
+    
     public static void main(String[] args) throws RemoteException, NotBoundException {
         /*
          * ======== HOW TO CONNECT TO SERVICE ========
