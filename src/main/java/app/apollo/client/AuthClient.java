@@ -17,7 +17,7 @@ public class AuthClient {
             return authService.login(username, password);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return null;
     }
@@ -27,7 +27,7 @@ public class AuthClient {
             return authService.register(username, password);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return false;
     }
@@ -37,7 +37,7 @@ public class AuthClient {
             authService.login(token);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
     
@@ -46,7 +46,7 @@ public class AuthClient {
             return authService.validateToken(token);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return false;
     }
@@ -56,7 +56,7 @@ public class AuthClient {
             return authService.login(token);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return null;
     }

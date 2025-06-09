@@ -27,7 +27,7 @@ public class LogoutCommand implements Command{
                     Files.write(filename, "Invalid Token".getBytes());
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
             }
         }

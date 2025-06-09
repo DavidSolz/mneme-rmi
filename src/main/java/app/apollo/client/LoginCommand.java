@@ -21,20 +21,26 @@ public class LoginCommand implements Command{
     public void execute(FileClient fileClient, AuthClient authClient){
         int userId;
         Session session = authClient.login(username, password);
-        String token = session.getToken();
-        if(authClient.validateToken(token)){
-            System.out.println("Zalogowano");
-            userId = session.getUserId();
-            fileClient.setClientID(userId);
-            sessionManager.saveToFile(String.valueOf(userId), token);
-            try {
-                if(!Files.exists(Paths.get(lastLoggedUserFileName))){
-                    Files.createFile(Paths.get(lastLoggedUserFileName));
+        if(session != null){
+                
+            String token = session.getToken();
+            if(authClient.validateToken(token)){
+                System.out.println("Zalogowano");
+                userId = session.getUserId();
+                fileClient.setClientID(userId);
+                sessionManager.saveToFile(String.valueOf(userId), token);
+                try {
+                    if(!Files.exists(Paths.get(lastLoggedUserFileName))){
+                        Files.createFile(Paths.get(lastLoggedUserFileName));
+                    }
+                    Files.write(Paths.get(lastLoggedUserFileName), String.valueOf(userId).getBytes());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    System.out.println(e.getMessage());
                 }
-                Files.write(Paths.get(lastLoggedUserFileName), String.valueOf(userId).getBytes());
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            }
+            else{
+                System.out.println("Logowanie nieudane");
             }
         }
         else{

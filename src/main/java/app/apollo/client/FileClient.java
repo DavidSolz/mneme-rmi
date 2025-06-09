@@ -25,10 +25,10 @@ public class FileClient {
                 this.clientID = Integer.parseInt(new String(Files.readAllBytes(Paths.get(lastLoggedUserFileName))));
             } catch (NumberFormatException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
         else{
@@ -123,9 +123,9 @@ public class FileClient {
 
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -140,7 +140,7 @@ public class FileClient {
             }
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
     }
@@ -227,10 +227,10 @@ public class FileClient {
 
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
     }
@@ -240,7 +240,7 @@ public class FileClient {
             return fileService.listFiles(token);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return null;
     }

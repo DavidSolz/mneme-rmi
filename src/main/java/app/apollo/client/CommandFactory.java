@@ -40,22 +40,22 @@ public class CommandFactory {
                 // }
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (IllegalAccessException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (IllegalArgumentException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (InvocationTargetException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (NoSuchMethodException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             } catch (SecurityException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             };
         }
         else{
