@@ -65,7 +65,7 @@ public interface FileService extends Remote {
      * @return List of checksums for each block of the file.
      * @throws RemoteException If a remote communication error occurs.
      */
-    List<String> getChecksums(String token, String filename) throws RemoteException;
+    List<FrozenPair<String,String>> getChecksums(String token, String filename) throws RemoteException;
 
     /**
      * Downloads a specific block of a file.

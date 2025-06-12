@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.apollo.common.Block;
+import app.apollo.common.FrozenPair;
 
 /**
  * Implementation of {@link FileBlockDAO} that interacts with a SQL database to
@@ -63,15 +64,16 @@ public class DBFileBlockDAO implements FileBlockDAO {
     }
 
     @Override
-    public List<String> findChecksumByUserAndFilename(Integer userId, Integer metadataId) {
+    public List<FrozenPair<String, String>> findChecksumByUserAndFilename(Integer userId, Integer metadataId) {
         String sql = "SELECT checksum FROM blocks WHERE user_id = ? AND metadata_id = ? ORDER BY sequence_id";
-        List<String> checksums = new ArrayList<>();
+        List<FrozenPair<String, String>> checksums = new ArrayList<>();
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             stmt.setInt(2, metadataId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                checksums.add(rs.getString("checksum"));
+                FrozenPair<String, String> checksumPair = new FrozenPair<String,String>(rs.getString("fingerprint"), rs.getString("checksum"));
+                checksums.add(checksumPair);
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -37,6 +37,11 @@ public class Block implements Serializable {
     /** Total size of block */
     private Integer size;
 
+    /***
+     * Block class default constructor.
+     */
+    public Block(){}
+
     /**
      * Returns the checksum of this block used for integrity verification.
      *

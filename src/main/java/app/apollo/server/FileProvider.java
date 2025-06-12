@@ -7,6 +7,8 @@ import java.util.List;
 import app.apollo.common.AuthService;
 import app.apollo.common.Block;
 import app.apollo.common.FileService;
+import app.apollo.common.FrozenPair;
+import app.apollo.common.InvalidBlockException;
 import app.apollo.common.Session;
 
 /**
@@ -26,10 +28,13 @@ import app.apollo.common.Session;
 public class FileProvider extends UnicastRemoteObject implements FileService {
 
     /** Fixed block size used across all file operations. */
-    static final Long BLOCK_SIZE = (long) 1024;
+    static final Integer BLOCK_SIZE = 1024;
 
     /** Service responsible for authorization managing */
     private AuthService authService;
+
+    /** Interface that is responsible for block validation */
+    private BlockValidator blockValidator;
 
     /** Service respnsible for file managing */
     private FileProviderManager fileManager;
@@ -45,6 +50,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
         super();
         this.authService = authService;
         this.fileManager = fileManager;
+        this.blockValidator = new DataBlockValidator(BLOCK_SIZE);
     }
 
     @Override
@@ -80,6 +86,11 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         Session session = authService.login(token);
 
+        if(!blockValidator.isBlockValid(block))
+        {
+            throw new InvalidBlockException();
+        }
+
         fileManager.uploadBlock(session.getUserId(), filename, block);
 
     }
@@ -98,9 +109,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
     }
 
     @Override
-    public List<String> getChecksums(String token, String filename) throws RemoteException {
-
-        List<String> checksums = null;
+    public List<FrozenPair<String,String>> getChecksums(String token, String filename) throws RemoteException {
 
         if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
@@ -108,7 +117,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         Session session = authService.login(token);
 
-        checksums = fileManager.getChecksums(session.getUserId(), filename);
+        List<FrozenPair<String,String>> checksums = fileManager.getChecksums(session.getUserId(), filename);
 
         return checksums;
     }
@@ -116,15 +125,13 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
     @Override
     public Block downloadBlock(String token, String filename, long blockIndex) throws RemoteException {
 
-        Block block = null;
-
         if (authService.validateToken(token) == false) {
             throw new RemoteException("Token expired");
         }
 
         Session session = authService.login(token);
 
-        block = fileManager.downloadBlock(session.getUserId(), filename, blockIndex);
+        Block block = fileManager.downloadBlock(session.getUserId(), filename, blockIndex);
 
         return block;
     }

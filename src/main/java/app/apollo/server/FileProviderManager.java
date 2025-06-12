@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import app.apollo.common.Block;
+import app.apollo.common.FrozenPair;
 
 /**
  * Manages file metadata and blocks, coordinating storage operations and
@@ -232,7 +233,7 @@ public class FileProviderManager {
      * @param filename Name of the file.
      * @return List of checksums; empty list if file not found.
      */
-    public List<String> getChecksums(Integer userId, String filename) {
+    public List<FrozenPair<String, String>> getChecksums(Integer userId, String filename) {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 

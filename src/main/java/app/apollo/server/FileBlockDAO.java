@@ -3,6 +3,7 @@ package app.apollo.server;
 import java.util.List;
 
 import app.apollo.common.Block;
+import app.apollo.common.FrozenPair;
 
 /**
  * Data Access Object (DAO) interface for managing file blocks.
@@ -36,7 +37,7 @@ public interface FileBlockDAO {
      * @param fileId The ID of the file metadata.
      * @return List of checksum strings for each block of the file.
      */
-    public List<String> findChecksumByUserAndFilename(Integer userId, Integer fileId);
+    public List<FrozenPair<String, String>> findChecksumByUserAndFilename(Integer userId, Integer fileId);
 
     /**
      * Deletes a block by metadata ID and sequence number.
