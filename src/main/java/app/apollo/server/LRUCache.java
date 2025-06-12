@@ -1,9 +1,12 @@
 package app.apollo.server;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
 public class LRUCache<K, V> implements Cache<K, V> {
 
@@ -56,6 +59,16 @@ public class LRUCache<K, V> implements Cache<K, V> {
     public void clear() {
         map.clear();
         usageList.clear();
+    }
+
+    @Override
+    public Collection<V> values() {
+        return map.values();
+    }
+
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        return map.entrySet();
     }
 
 }

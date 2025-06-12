@@ -1,6 +1,9 @@
 package app.apollo.server;
 
+import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
 /***
  * Cache<K,V> interface refers to a container that stores some fixed amount of items and allows for quick lookup.
@@ -32,6 +35,18 @@ public interface Cache<K,V> {
      * @return Flag that tells if container is empty.
      */
     public boolean isEmpty();
+
+    /***
+     * Creates set of entires stored in cache.
+     * @return Set of entries stored in cache.
+     */
+    public Set<Entry<K,V>> entrySet();
+
+    /***
+     * Creates collection of values.
+     * @return Collection of values.
+     */
+    public Collection<V> values();
 
     /***
      * Clears all elements stored in cache.
