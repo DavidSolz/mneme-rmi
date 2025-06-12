@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import app.apollo.common.Session;
 
@@ -15,7 +16,11 @@ import app.apollo.common.Session;
  */
 public class DBSessionDAO implements SessionDAO {
 
+    static final Integer CACHE_CAPACITY = 100;
+
     private Connection connection;
+
+    private final Cache<String, Session> sessionCache;
 
     /**
      * Constructs a new DBUserDAO with the given database connection.
@@ -24,6 +29,7 @@ public class DBSessionDAO implements SessionDAO {
      */
     public DBSessionDAO(Connection connection) {
         this.connection = connection;
+        this.sessionCache = new LRUCache<>(CACHE_CAPACITY);
         clearAllSessions();
     }
 
@@ -34,6 +40,7 @@ public class DBSessionDAO implements SessionDAO {
         try {
             statement = connection.prepareStatement(sql);
             statement.executeUpdate();
+            sessionCache.clear();
 
         } catch (SQLException e) {
             System.out.println("Failed to clear sessions: " + e.getMessage());
@@ -44,7 +51,13 @@ public class DBSessionDAO implements SessionDAO {
     public Session findByToken(String token) {
         final String statementString = "SELECT * FROM sessions WHERE token=?";
         PreparedStatement statement = null;
-        Session session = null;
+
+        Optional<Session> possibleSession = sessionCache.get(token);
+
+        if(possibleSession.isPresent())
+        {
+            return possibleSession.get();
+        }
 
         try {
             statement = connection.prepareStatement(statementString);
@@ -54,7 +67,7 @@ public class DBSessionDAO implements SessionDAO {
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
-                session = new Session();
+                Session session = new Session();
 
                 session.setUserId(result.getInt("user_id"));
                 session.setToken(result.getString("token"));
@@ -65,7 +78,7 @@ public class DBSessionDAO implements SessionDAO {
             System.out.println(e.getMessage());
         }
 
-        return session;
+        return null;
     }
 
     @Override

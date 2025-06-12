@@ -1,9 +1,11 @@
 package app.apollo.server;
 
+import java.security.cert.PKIXRevocationChecker.Option;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 
 /**
  * Data Access Object (DAO) interface for managing user data.
@@ -11,18 +13,32 @@ import java.sql.SQLException;
  */
 public class DBUserDAO implements UserDAO{
 
+    static final Integer CACHE_CAPACITY = 100;
+
     private Connection connection;
+
+    private final Cache<Integer, User> userByIdCache;
+
+    private final Cache<String, User> userByNameCache;
 
     public DBUserDAO(Connection connection)
     {
         this.connection = connection;
+        this.userByIdCache = new LRUCache<>(CACHE_CAPACITY);
+        this.userByNameCache = new LRUCache<>(CACHE_CAPACITY);
     }
 
     @Override
     public User findByUsername(String username) {
         final String statementString = "SELECT * FROM users WHERE username=?";
         PreparedStatement statement = null;
-        User user = null;
+
+        Optional<User> possibleUser = userByNameCache.get(username);
+
+        if(possibleUser.isPresent())
+        {
+            return possibleUser.get();
+        }
 
         try {
             statement = connection.prepareStatement(statementString);
@@ -36,17 +52,21 @@ public class DBUserDAO implements UserDAO{
                 return null;
             }
 
-            user = new User();
+            User user = new User();
 
             user.setId(result.getInt("id"));
             user.setUsername(result.getString("username"));
             user.setPassword(result.getString("password"));
 
+            userByNameCache.put(username, user);
+
+            return user;
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
-        return user;
+        return null;
     }
 
     @Override
@@ -73,7 +93,13 @@ public class DBUserDAO implements UserDAO{
     public User findById(Integer id) {
         final String statementString = "SELECT * FROM users WHERE id=?";
         PreparedStatement statement = null;
-        User user = null;
+
+        Optional<User> possibleUser = userByIdCache.get(id);
+
+        if(possibleUser.isPresent())
+        {
+            return possibleUser.get();
+        }
 
         try {
             statement = connection.prepareStatement(statementString);
@@ -87,17 +113,19 @@ public class DBUserDAO implements UserDAO{
                 return null;
             }
 
-            user = new User();
+            User user = new User();
 
             user.setId(result.getInt("id"));
             user.setUsername(result.getString("username"));
             user.setPassword(result.getString("password"));
 
+            userByIdCache.put(id, user);
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
-        return user;
+        return null;
     }
 
 }

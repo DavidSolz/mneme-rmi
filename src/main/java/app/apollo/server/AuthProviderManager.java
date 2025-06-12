@@ -19,6 +19,7 @@ public class AuthProviderManager {
     private static final Logger logger = Logger.getLogger(AuthProviderManager.class.getName());
 
     private UserDAO userDAO;
+
     private SessionDAO sessionDAO;
 
     /**
