@@ -16,8 +16,11 @@ import java.io.Serializable;
  */
 public class Block implements Serializable {
 
-    /** Computed checksum used for checking differencies */
+    /** Computed checksum used for checking differences */
     private String checksum;
+
+    /** Computed fingerprint used for checking differences */
+    private String fingerprint;
 
     /** Metadata Id that refers to metadata object */
     private Integer metadataId;
@@ -140,5 +143,23 @@ public class Block implements Serializable {
      */
     public void setSize(Integer size) {
         this.size = size;
+    }
+
+    /**
+     * Returns the fingerprint of this block used for integrity verification.
+     *
+     * @return A hexadecimal string representing the fingerprint.
+     */
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    /**
+     * Sets the fingerprint of this block.
+     *
+     * @param checksum A hexadecimal string representing the block's fingerprint.
+     */
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }

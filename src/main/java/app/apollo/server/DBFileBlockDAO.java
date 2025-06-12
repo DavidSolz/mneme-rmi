@@ -28,13 +28,14 @@ public class DBFileBlockDAO implements FileBlockDAO {
 
     @Override
     public boolean insert(Block block) {
-        String sql = " INSERT INTO blocks (user_id, metadata_id, sequence_id, size, checksum) VALUES (?, ?, ?, ?, ?) ON CONFLICT(user_id, metadata_id, sequence_id) DO UPDATE SET size = excluded.size, checksum = excluded.checksum";
+        String sql = " INSERT INTO blocks (user_id, metadata_id, sequence_id, size, checksum, fingerprint) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(user_id, metadata_id, sequence_id) DO UPDATE SET size = excluded.size, checksum = excluded.checksum";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, block.getUserId());
             stmt.setInt(2, block.getMetadataId());
             stmt.setLong(3, block.getSequenceNumber());
             stmt.setInt(4, block.getSize());
             stmt.setString(5, block.getChecksum());
+            stmt.setString(6, block.getFingerprint());
             stmt.executeUpdate();
 
             return true;
@@ -116,6 +117,7 @@ public class DBFileBlockDAO implements FileBlockDAO {
         block.setMetadataId(rs.getInt("metadata_id"));
         block.setSequenceNumber(rs.getLong("sequence_id"));
         block.setChecksum(rs.getString("checksum"));
+        block.setFingerprint(rs.getString("fingerprint"));
         block.setSize(rs.getInt("size"));
         return block;
     }
