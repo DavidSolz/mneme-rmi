@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import app.apollo.common.Block;
 
@@ -26,6 +28,8 @@ public class FileProviderManager {
 
     private FileMetadataDAO fileMetadataDAO;
     private FileBlockDAO fileBlockDAO;
+
+    private static final Logger logger = Logger.getLogger(FileProviderManager.class.getName());
 
     // ** Locks keyed by "userId:filename" */
     private final ConcurrentHashMap<String, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
@@ -65,6 +69,8 @@ public class FileProviderManager {
 
         ReentrantLock lock = getLock(userId, filename);
         lock.lock();
+
+        logger.info("Setting block count for file '" + filename + "' for user " + userId);
 
         try {
             FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
@@ -135,6 +141,8 @@ public class FileProviderManager {
         ReentrantLock lock = getLock(userId, filename);
         lock.lock();
 
+        logger.info("Uploading block " + block.getSequenceNumber() + " for file '" + filename + "' by user " + userId);
+
         try {
             FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
@@ -162,7 +170,7 @@ public class FileProviderManager {
 
                 fileBlockDAO.insert(block);
             } catch (IOException e) {
-                System.err.println("Failed to upload block: " + e.getMessage());
+                logger.log(Level.SEVERE, "Failed to upload block", e);
             }
         } finally {
             lock.unlock();
@@ -182,6 +190,8 @@ public class FileProviderManager {
         ReentrantLock lock = getLock(userId, filename);
         lock.lock();
 
+        logger.info("Deleting file '" + filename + "' for user " + userId);
+
         try {
             FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
@@ -198,7 +208,8 @@ public class FileProviderManager {
                                 try {
                                     Files.deleteIfExists(path);
                                 } catch (IOException e) {
-                                    System.err.println("Failed to delete: " + path + " - " + e.getMessage());
+                                    logger.log(Level.WARNING, "Failed to delete: " + path, e);
+
                                 }
                             });
                 }
@@ -206,7 +217,7 @@ public class FileProviderManager {
                 fileBlockDAO.deleteByUserAndFilename(metadata.getOwnerId(), metadata.getId());
                 fileMetadataDAO.delete(filename, userId);
             } catch (IOException e) {
-                System.err.println("Error deleting file: " + e.getMessage());
+                logger.log(Level.SEVERE, "Error deleting file", e);
             }
         } finally {
             lock.unlock();
@@ -245,13 +256,13 @@ public class FileProviderManager {
 
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
         if (metadata == null) {
-            System.out.println("Nie znaleziono metadanych");
+            logger.warning("Metadata not found for user " + userId + " and file '" + filename + "'");
             return null;
         }
 
         Block block = fileBlockDAO.findByUserFilenameAndBlock(userId, metadata.getId(), blockIndex);
         if (block == null) {
-            System.out.println("Nie znaleziono bloku");
+            logger.warning("Block not found for file '" + filename + "', block " + blockIndex);
             return null;
         }
 
@@ -265,7 +276,7 @@ public class FileProviderManager {
 
             return block;
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Failed to read block from disk", e);
         }
 
         return null;

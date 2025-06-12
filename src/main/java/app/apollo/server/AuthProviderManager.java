@@ -4,6 +4,7 @@ import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import app.apollo.common.Session;
 
@@ -14,6 +15,8 @@ import app.apollo.common.Session;
  * authentication logic.
  */
 public class AuthProviderManager {
+
+    private static final Logger logger = Logger.getLogger(AuthProviderManager.class.getName());
 
     private UserDAO userDAO;
     private SessionDAO sessionDAO;
@@ -40,21 +43,25 @@ public class AuthProviderManager {
      * @throws InvalidParameterException if the credentials are invalid
      */
     public Session login(String username, String password) {
-        User user = null;
 
-        user = userDAO.findByUsername(username);
+        logger.info("Login attempt for user: " + username);
+
+        User user = userDAO.findByUsername(username);
 
         if (user == null) {
+            logger.warning("Login failed: user '" + username + "' not found.");
             return null;
         }
 
         if (user.getPassword().equals(password) == false) {
+            logger.warning("Login failed: invalid credentials for user '" + username + "'");
             throw new InvalidParameterException("Invalid credentials for user '" + username + "'");
         }
 
         synchronized (user) {
             Session session = sessionDAO.findByUserId(user.getId());
             if (session != null) {
+                logger.info("Existing session reused for user: " + username);
                 return session;
             }
 
@@ -65,6 +72,7 @@ public class AuthProviderManager {
             session.setCreatedAt(LocalDateTime.now());
 
             sessionDAO.insert(session);
+            logger.info("New session created for user: " + username);
 
             return session;
         }
@@ -78,14 +86,21 @@ public class AuthProviderManager {
      * @return true if registration is successful; false otherwise
      */
     public boolean register(String username, String password) {
-        User user = null;
 
-        user = new User();
+        logger.info("Registration attempt for user: " + username);
+
+        User user = new User();
 
         user.setUsername(username);
         user.setPassword(password);
 
         boolean result = userDAO.insert(user);
+
+        if (result) {
+            logger.info("User '" + username + "' registered successfully.");
+        } else {
+            logger.warning("Registration failed for user: " + username);
+        }
 
         return result;
     }
@@ -96,6 +111,7 @@ public class AuthProviderManager {
      * @param token the session token to invalidate
      */
     public void logout(String token) {
+        logger.info("Logging out session with token: " + token);
         sessionDAO.delete(token);
     }
 
@@ -107,8 +123,14 @@ public class AuthProviderManager {
      * @return true if the token corresponds to a valid session; false otherwise
      */
     public boolean validateToken(String token) {
+        logger.fine("Validating session token: " + token);
+
         sessionDAO.deleteExpired(Duration.ofMinutes(15));
         Session session = sessionDAO.findByToken(token);
+
+        boolean valid = session != null;
+        logger.fine("Session token '" + token + "' is " + (valid ? "valid" : "invalid"));
+
         return session != null;
     }
 
@@ -120,8 +142,13 @@ public class AuthProviderManager {
      * @return the corresponding {@link Session} if token is valid; null otherwise
      */
     public Session login(String token) {
-        Session session = null;
-        session = sessionDAO.findByToken(token);
+        logger.fine("Login via token: " + token);
+        Session session = sessionDAO.findByToken(token);
+
+        if (session == null) {
+            logger.warning("Session not found for token: " + token);
+        }
+
         return session;
     }
 
