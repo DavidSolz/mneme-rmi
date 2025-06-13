@@ -2,11 +2,9 @@ package app.apollo.client;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -15,6 +13,8 @@ import java.util.stream.Stream;
 import javax.security.auth.login.CredentialException;
 
 import app.apollo.common.Block;
+import app.apollo.common.CrypticEngine;
+import app.apollo.common.FrozenPair;
 
 public class UploadCommand implements Command {
 
@@ -79,31 +79,107 @@ public class UploadCommand implements Command {
 
     }
 
-    public void upload(String filepath) throws Exception{
-        
-        int blockSize = (int) ctx.fileService.getBlockSize();
+    public void upload(String filepath) throws Exception {
 
+        int blockSize = (int) ctx.fileService.getBlockSize();
         File inputFile = new File(filepath);
 
-        long numBlocks = (long) Math.ceil(inputFile.length()/blockSize);
-
-        ctx.fileService.setFileBlockCount(ctx.session.getToken(), filepath, numBlocks);
-
-        FileInputStream stream = new FileInputStream(inputFile);
-        
-        int bytesRead = 0;
-        int offset = 0;
-
-        byte[] data = new byte[blockSize];
-        while( (bytesRead = stream.read(data, offset, blockSize)) != -1 )
-        {
-            Block block = new Block();
-            ctx.fileService.uploadBlock(ctx.session.getToken(), filepath, block);
-            offset += bytesRead;
+        if (!inputFile.exists()) {
+            throw new FileNotFoundException("File `" + filepath + "` does not exist or cannot be opened.");
         }
 
-        stream.close();
+        if (inputFile.length() == 0) {
+            System.out.println("Warning: File " + filepath + " is empty, skipping upload.");
+            return;
+        }
 
+        System.out.println("\n=== Uploading file: " + inputFile.getName() + " ===");
+
+        long numBlocks = (inputFile.length() + blockSize - 1) / blockSize;
+        System.out.println("Estimated number of blocks: " + numBlocks);
+
+        ctx.fileService.setFileBlockCount(ctx.session.getToken(), inputFile.getName(), numBlocks);
+        System.out.println("Current base block size: " + blockSize);
+
+        List<FrozenPair<String, String>> checksums = ctx.fileService.getChecksums(ctx.session.getToken(),
+                inputFile.getName());
+
+        if (checksums == null) {
+            checksums = Collections.emptyList();
+        }
+
+        long startTime = System.currentTimeMillis();
+
+        try (FileInputStream stream = new FileInputStream(inputFile)) {
+
+            int blockNum = 0;
+
+            byte[] buffer = new byte[blockSize];
+
+            while (true) {
+                int totalRead = 0;
+
+                while (totalRead < blockSize) {
+                    int read = stream.read(buffer, totalRead, blockSize - totalRead);
+                    if (read == -1)
+                        break;
+                    totalRead += read;
+                }
+
+                if (totalRead == 0) {
+                    break;
+                }
+
+                byte[] blockData = Arrays.copyOf(buffer, blockSize);
+
+                if (totalRead < blockSize) {
+                    Arrays.fill(blockData, totalRead, blockSize, (byte) 0);
+                }
+
+                String fingerprint = CrypticEngine.weakHash(blockData, blockSize);
+                String checksum = CrypticEngine.strongHash(fingerprint, blockData, blockSize);
+
+                Block block = new Block();
+                block.setData(blockData);
+                block.setSize(totalRead);
+                block.setFingerprint(fingerprint);
+                block.setChecksum(checksum);
+                block.setSequenceNumber((long) blockNum);
+                block.setUserId(ctx.session.getUserId());
+
+                System.out.println("Block size: " + totalRead);
+
+                boolean needsUpload = true;
+
+                if (blockNum < checksums.size()) {
+                    FrozenPair<String, String> remoteChecksum = checksums.get(blockNum);
+
+                    if (fingerprint.equals(remoteChecksum.getFirst()) && checksum.equals(remoteChecksum.getSecond())) {
+                        needsUpload = false;
+                    }
+                }
+
+                if (needsUpload) {
+                    try {
+                        ctx.fileService.uploadBlock(ctx.session.getToken(), inputFile.getName(), block);
+                    } catch (Exception e) {
+                        System.err.printf("Error uploading block %d: %s%n", blockNum, e.getMessage());
+                        throw e;
+                    }
+                }
+
+                blockNum += 1;
+
+                double percent = (blockNum * 100.0) / numBlocks;
+                long elapsed = System.currentTimeMillis() - startTime;
+                long remaining = (long) ((elapsed / (double) blockNum) * (numBlocks - blockNum));
+
+                printProgress("Uploading", percent, remaining);
+            }
+
+        }
+
+        System.out.println();
     }
 
     @Override
@@ -113,15 +189,18 @@ public class UploadCommand implements Command {
             throw new IllegalArgumentException("Usage: upload <regular expression>");
         }
 
-        if(ctx.session.getToken() == null || ctx.session.getToken().isEmpty())
-        {
+        if (ctx.session.getToken() == null || ctx.session.getToken().isEmpty()) {
             throw new CredentialException("Access failed: No active session.");
         }
 
         List<String> matches = findFilenamesByRegex(args[1]);
 
         for (String match : matches) {
-            upload(match);
+            try {
+                upload(match);
+            } catch (Exception e) {
+                System.err.println("Upload failed for " + match + ": " + e.getMessage());
+            }
         }
 
     }

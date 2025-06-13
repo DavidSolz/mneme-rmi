@@ -9,4 +9,5 @@
 
 *.env
 *.db
+*.txt
 *.bak

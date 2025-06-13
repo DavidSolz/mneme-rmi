@@ -122,6 +122,8 @@ public class FileProviderManager {
     public long getFileBlockCount(Integer userId, String filename) {
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
+        logger.info("Getting block count for file '" + filename + "' for user " + userId);
+
         if (metadata != null && metadata.getBlockCount() != null) {
             return metadata.getBlockCount();
         }
@@ -238,8 +240,11 @@ public class FileProviderManager {
         FileMetadata metadata = fileMetadataDAO.findByNameAndOwner(filename, userId);
 
         if (metadata == null) {
+            logger.warning("Metadata not found for file '" + filename + "'");
             return new ArrayList<>();
         }
+
+        logger.info("Fetching checksums for '" + filename + "' for user " + userId);
 
         return fileBlockDAO.findChecksumByUserAndFilename(userId, metadata.getId());
     }

@@ -13,7 +13,7 @@ public class RegisterCommand implements Command {
         if (args.length < 3) {
             throw new IllegalArgumentException("Usage: register <username> <password>");
         }
-        boolean ok = ctx.authService.register(args[1], args[2]);
+        boolean ok = ctx.authService.register(args[1].trim(), args[2].trim());
         System.out.println(ok ? "Registration successful." : "Registration failed.");
     }
 

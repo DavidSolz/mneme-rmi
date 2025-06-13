@@ -32,7 +32,7 @@ public class CrypticEngine {
             hash = (hash * 33) ^ data[i];
         }
 
-        return Integer.toHexString(hash & 0xffffffff);
+        return Long.toHexString(hash & 0xffffffffL);
     }
 
     /**
@@ -46,17 +46,18 @@ public class CrypticEngine {
      * @return A hexadecimal string representation of the resulting hash.
      */
     public static String strongHash(String accumulator, byte[] data, long size) {
-        final Integer MOD = 150190;
-        final Integer BASE = 18371539;
-        Integer hash = Integer.valueOf(accumulator, 16);
+        final long MOD = 150190L;
+        final long BASE = 18371539L;
+
+        long hash = Long.parseLong(accumulator, 16);
 
         for (int i = 1; i < size; i++) {
-            hash ^= data[i];
-            hash += data[i - 1];
+            hash ^= (data[i] & 0xFF);
+            hash += (data[i - 1] & 0xFF);
             hash *= BASE;
             hash %= MOD;
         }
 
-        return Integer.toHexString(hash);
+        return Long.toHexString(hash & 0xffffffffL);
     }
 }

@@ -88,7 +88,7 @@ public class FileProvider extends UnicastRemoteObject implements FileService {
 
         if(!blockValidator.isBlockValid(block))
         {
-            throw new InvalidBlockException();
+            throw new InvalidBlockException("Block " + block.getSequenceNumber() + " in file: `" + filename + "` is invalid.");
         }
 
         fileManager.uploadBlock(session.getUserId(), filename, block);

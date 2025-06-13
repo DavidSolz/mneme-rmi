@@ -148,6 +148,8 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
                 metadatas.add(metadata);
             }
 
+            return metadatas;
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

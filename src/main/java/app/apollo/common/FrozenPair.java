@@ -1,10 +1,12 @@
 package app.apollo.common;
 
+import java.io.Serializable;
+
 /***
  * Pair class represents a container that stores a pair of generic elements.
  *
  */
-public class FrozenPair<First, Second> {
+public class FrozenPair<First, Second> implements Serializable{
 
     /*** First element in pair */
     private First first;

@@ -15,6 +15,9 @@ public class CommandFactory {
         register(new LoginCommand(context));
         register(new LogoutCommand(context));
         register(new UploadCommand(context));
+        register(new DownloadCommand(context));
+        register(new DeleteCommand(context));
+        register(new ListCommand(context));
         register(new ClearCommand());
     }
 

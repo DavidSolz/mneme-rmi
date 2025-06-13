@@ -16,7 +16,7 @@ public class LoginCommand implements Command {
             throw new IllegalArgumentException("Usage: login <username> <password>");
         }
 
-        Session session = ctx.authService.login(args[1], args[2]);
+        Session session = ctx.authService.login(args[1].trim(), args[2].trim());
 
         if (session == null) {
             System.out.println("Login failed.");

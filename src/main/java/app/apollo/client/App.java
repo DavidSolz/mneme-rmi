@@ -26,29 +26,31 @@ public class App {
 
             CommandFactory factory = new CommandFactory(context);
 
-            Scanner scanner = new Scanner(System.in);
+            try (Scanner scanner = new Scanner(System.in)) {
 
-            System.out.println(">> Apollo RMI Client");
+                System.out.println(">> Apollo RMI Client");
 
-            while (true) {
-                System.out.print("> ");
-                String line = scanner.nextLine().trim();
-                if (line.isEmpty()) {
-                    continue;
-                }
+                while (true) {
+                    System.out.print("> ");
+                    String line = scanner.nextLine().trim();
+                    if (line.isEmpty()) {
+                        continue;
+                    }
 
-                String[] parts = line.split("\\s+");
-                Command command = factory.get(parts[0]);
+                    String[] parts = line.split("\\s+");
+                    Command command = factory.get(parts[0]);
 
-                if (command == null) {
-                    System.out.println("Unknown command. Type 'help'.");
-                    continue;
-                }
+                    if (command == null) {
+                        System.out.println("Unknown command. Type 'help'.");
+                        continue;
+                    }
 
-                try {
-                    command.execute(parts);
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
+                    try {
+                        command.execute(parts);
+                    } catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+
                 }
 
             }
@@ -56,7 +58,6 @@ public class App {
         } catch (Exception e) {
             System.out.println("Fatal error: " + e.getMessage());
         }
-
     }
 
 }
