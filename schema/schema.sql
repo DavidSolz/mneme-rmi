@@ -14,6 +14,7 @@ CREATE TABLE blocks (
     user_id INTEGER NOT NULL,
     sequence_id INTEGER NOT NULL,
     size INTEGER NOT NULL,
+    fingerprint TEXT NOT NULL,
     checksum TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (metadata_id) REFERENCES metadata(id) ON DELETE CASCADE,

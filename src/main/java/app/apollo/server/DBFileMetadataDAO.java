@@ -7,14 +7,22 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Implementation of {@link FileMetadataDAO} to manage file metadata in a SQL database.
+ * Implementation of {@link FileMetadataDAO} to manage file metadata in a SQL
+ * database.
  * Provides CRUD operations on the metadata table.
  */
 public class DBFileMetadataDAO implements FileMetadataDAO {
 
+    static final Integer CACHE_CAPACITY = 100;
+
     private Connection connection;
+
+    private final Cache<String, FileMetadata> metadataCache;
+
+    private final Cache<Integer, List<FileMetadata>> ownerFileListCache;
 
     /**
      * Constructs a new DBFileMetadataDAO with the given SQL connection.
@@ -23,19 +31,24 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
      */
     public DBFileMetadataDAO(Connection connection) {
         this.connection = connection;
+        this.metadataCache = new LRUCache<>(CACHE_CAPACITY);
+        this.ownerFileListCache = new LRUCache<>(CACHE_CAPACITY);
+    }
+
+    private String makeFileKey(String filename, Integer ownerId) {
+        return ownerId + ":" + filename;
     }
 
     @Override
     public boolean insert(FileMetadata metadata) {
-        final String statementString = "INSERT INTO metadata (filename, owner_id, path, created_at, block_count) VALUES (?, ?, ?, ?, ?)";
-        PreparedStatement statement = null;
 
         if (findByNameAndOwner(metadata.getFilename(), metadata.getOwnerId()) != null) {
             return false;
         }
 
-        try {
-            statement = connection.prepareStatement(statementString);
+        final String statementString = "INSERT INTO metadata (filename, owner_id, path, created_at, block_count) VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement statement = connection.prepareStatement(statementString)) {
 
             statement.setString(1, metadata.getFilename());
             statement.setInt(2, metadata.getOwnerId());
@@ -43,7 +56,14 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
             statement.setString(4, metadata.getCreatedAt().toString());
             statement.setObject(5, metadata.getBlockCount());
 
-            return statement.executeUpdate() > 0;
+            boolean success = statement.executeUpdate() > 0;
+
+            if (success) {
+                metadataCache.put(makeFileKey(metadata.getFilename(), metadata.getOwnerId()), metadata);
+                ownerFileListCache.remove(metadata.getOwnerId());
+            }
+
+            return success;
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -59,11 +79,17 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
 
             statement.setString(1, metadata.getPath());
             statement.setString(2, metadata.getCreatedAt().toString());
-            statement.setObject(3, metadata.getBlockCount()); // Can be null
+            statement.setObject(3, metadata.getBlockCount());
             statement.setString(4, metadata.getFilename());
             statement.setInt(5, metadata.getOwnerId());
 
-            return statement.executeUpdate() > 0;
+            boolean success = statement.executeUpdate() > 0;
+            if (success) {
+                metadataCache.put(makeFileKey(metadata.getFilename(), metadata.getOwnerId()), metadata);
+                ownerFileListCache.remove(metadata.getOwnerId());
+            }
+
+            return success;
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -75,14 +101,16 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
     @Override
     public void delete(String filename, Integer ownerId) {
         final String statementString = "DELETE FROM metadata WHERE owner_id=? AND filename=?";
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement(statementString);
+
+        try (PreparedStatement statement = connection.prepareStatement(statementString)) {
 
             statement.setInt(1, ownerId);
             statement.setString(2, filename);
 
             statement.executeUpdate();
+
+            metadataCache.remove(makeFileKey(filename, ownerId));
+            ownerFileListCache.remove(ownerId);
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -92,18 +120,21 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
 
     @Override
     public List<FileMetadata> findByOwnerId(Integer userId) {
-        final String statementString = "SELECT * FROM metadata WHERE owner_id=?";
-        PreparedStatement statement = null;
-        List<FileMetadata> metadatas = null;
+        Optional<List<FileMetadata>> cached = ownerFileListCache.get(userId);
 
-        try {
-            statement = connection.prepareStatement(statementString);
+        if (cached.isPresent()) {
+            return cached.get();
+        }
+
+        final String statementString = "SELECT * FROM metadata WHERE owner_id=?";
+
+        try (PreparedStatement statement = connection.prepareStatement(statementString)) {
 
             statement.setInt(1, userId);
 
             ResultSet result = statement.executeQuery();
 
-            metadatas = new ArrayList<>();
+            List<FileMetadata> metadatas = new ArrayList<>();
 
             while (result.next()) {
                 FileMetadata metadata = new FileMetadata();
@@ -121,17 +152,20 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
             System.out.println(e.getMessage());
         }
 
-        return metadatas;
+        return new ArrayList<>();
     }
 
     @Override
     public FileMetadata findByNameAndOwner(String filename, Integer ownerId) {
-        final String statementString = "SELECT * FROM metadata WHERE owner_id=? AND filename=?";
-        PreparedStatement statement = null;
-        FileMetadata metadata = null;
+        Optional<FileMetadata> possibleMetadata = metadataCache.get(makeFileKey(filename, ownerId));
 
-        try {
-            statement = connection.prepareStatement(statementString);
+        if (possibleMetadata.isPresent()) {
+            return possibleMetadata.get();
+        }
+
+        final String statementString = "SELECT * FROM metadata WHERE owner_id=? AND filename=?";
+
+        try (PreparedStatement statement = connection.prepareStatement(statementString)){
 
             statement.setInt(1, ownerId);
             statement.setString(2, filename);
@@ -139,7 +173,7 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
-                metadata = new FileMetadata();
+                FileMetadata metadata = new FileMetadata();
 
                 metadata.setId(result.getInt("id"));
                 metadata.setFilename(result.getString("filename"));
@@ -148,13 +182,14 @@ public class DBFileMetadataDAO implements FileMetadataDAO {
                 metadata.setBlockCount(result.getLong("block_count"));
                 metadata.setCreatedAt(LocalDateTime.parse(result.getString("created_at")));
 
+                return metadata;
             }
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
-        return metadata;
+        return null;
     }
 
 }
